@@ -17,7 +17,7 @@
 
 package org.digitalcampus.oppia.utils.ui;
 
-import org.digitalcampus.mobile.learning.R;
+import org.opendeliver.oppia.R;
 
 import android.app.Dialog;
 import android.content.Context;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_logo_alt">Digital Campus Logo</string>
+    <string name="app_logo_alt">Open Deliver Logo</string>
 
 
     <!-- Dont need to define gcm values here anymore, as they are defined in google-services.json

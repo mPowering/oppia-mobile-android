@@ -40,8 +40,7 @@ import java.lang.ref.WeakReference;
 import java.util.Formatter;
 import java.util.Locale;
 
-import org.digitalcampus.mobile.learning.R;
-
+import org.opendeliver.oppia.R;
 
 /**
  * A view containing controls for a MediaPlayer. Typically contains the

@@ -23,7 +23,7 @@ import android.util.Log;
 
 import com.splunk.mint.Mint;
 
-import org.digitalcampus.mobile.learning.R;
+import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.application.DbHelper;
 import org.digitalcampus.oppia.application.SessionManager;
 import org.digitalcampus.oppia.listener.PreloadAccountsListener;
