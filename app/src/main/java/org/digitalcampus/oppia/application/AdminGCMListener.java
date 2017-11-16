@@ -33,9 +33,10 @@ import android.util.Log;
 import com.google.android.gms.gcm.GcmListenerService;
 
 import org.opendeliver.oppia.R;
+import org.opendeliver.oppia.BuildConfig;
 import org.digitalcampus.oppia.activity.PrefsActivity;
 import org.digitalcampus.oppia.activity.StartUpActivity;
-import org.digitalcampus.oppia.utils.ui.OppiaNotificationBuilder;
+import org.digitalcampus.oppia.utils.ui.OppiaNotificationUtils;
 
 @SuppressLint("NewApi")
 public class AdminGCMListener extends GcmListenerService {
@@ -58,8 +59,13 @@ public class AdminGCMListener extends GcmListenerService {
             // message received from some topic.
         } else {
             String type = messageData.getString(MESSAGE_TYPE);
-            if (type == null) return;
-            else if (type.equals(TYPE_ADMIN)){
+            if ((type != null) && (type.equals(TYPE_ADMIN))){
+
+                if (!BuildConfig.FLAVOR.equals("admin")) {
+                    //Is not the admin-flavor app (we don't have the permission, would produce crash)
+                    Log.d(TAG, "Device Administration is disabled :(");
+                    return;
+                }
 
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
                 boolean adminEnabled = prefs.getBoolean(PrefsActivity.PREF_REMOTE_ADMIN, false);
@@ -90,7 +96,6 @@ public class AdminGCMListener extends GcmListenerService {
                         policyManager.resetPassword(password, DevicePolicyManager.RESET_PASSWORD_REQUIRE_ENTRY);
                         policyManager.lockNow();
                     }
-
                 }
             }
 
@@ -103,16 +108,14 @@ public class AdminGCMListener extends GcmListenerService {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
-        NotificationCompat.Builder notifBuilder = OppiaNotificationBuilder.getBaseBuilder(this, true);
+        NotificationCompat.Builder notifBuilder = OppiaNotificationUtils.getBaseBuilder(this, true);
         notifBuilder
-            .setContentTitle(getString(R.string.notification_remote_admin_title))
-            .setContentText(message)
-            .setContentIntent(pendingIntent)
-            .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-            .build();
+                .setContentTitle(getString(R.string.notification_remote_admin_title))
+                .setContentText(message)
+                .setContentIntent(pendingIntent)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                .build();
 
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(NOTIFICATION_ID, notifBuilder.build());
+        OppiaNotificationUtils.sendNotification(this, NOTIFICATION_ID, notifBuilder.build());
     }
 }

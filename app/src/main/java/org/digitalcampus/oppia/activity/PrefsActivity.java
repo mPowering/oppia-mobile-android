@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.opendeliver.oppia.R;
+import org.opendeliver.oppia.BuildConfig;
+
 import org.digitalcampus.oppia.application.AdminReceiver;
 import org.digitalcampus.oppia.fragments.PreferencesFragment;
 import org.digitalcampus.oppia.listener.MoveStorageListener;
@@ -96,6 +98,7 @@ public class PrefsActivity extends AppActivity implements SharedPreferences.OnSh
 	public static final String PREF_LOGOUT_ENABLED = "prefLogoutEnabled";
 	public static final String PREF_DELETE_COURSE_ENABLED = "prefDeleteCourseEnabled";
 	public static final String PREF_DOWNLOAD_VIA_CELLULAR_ENABLED = "prefDownloadViaCellularEnabled";
+    public static final String PREF_DISABLE_NOTIFICATIONS = "prefDisableNotifications";
 
     public static final String PREF_STORAGE_OPTION = "prefStorageOption";
     public static final String STORAGE_OPTION_INTERNAL = "internal";
@@ -260,17 +263,18 @@ public class PrefsActivity extends AppActivity implements SharedPreferences.OnSh
             }
         }
         else if (key.equalsIgnoreCase(PREF_REMOTE_ADMIN)){
-            boolean adminEnabled = sharedPreferences.getBoolean(PrefsActivity.PREF_REMOTE_ADMIN, false);
-            ComponentName adminReceiver = new ComponentName(this, AdminReceiver.class);
-            if (adminEnabled){
-                // Activate device administration
-                Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-                intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminReceiver);
-                startActivityForResult(intent, ADMIN_ACTIVATION_REQUEST);
-            }
-            else{
-                DevicePolicyManager dpm = (DevicePolicyManager) this.getSystemService(Context.DEVICE_POLICY_SERVICE);
-                dpm.removeActiveAdmin(adminReceiver);
+            if (BuildConfig.FLAVOR.equals("admin")) {
+                boolean adminEnabled = sharedPreferences.getBoolean(PrefsActivity.PREF_REMOTE_ADMIN, false);
+                ComponentName adminReceiver = new ComponentName(this, AdminReceiver.class);
+                if (adminEnabled) {
+                    // Activate device administration
+                    Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+                    intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminReceiver);
+                    startActivityForResult(intent, ADMIN_ACTIVATION_REQUEST);
+                } else {
+                    DevicePolicyManager dpm = (DevicePolicyManager) this.getSystemService(Context.DEVICE_POLICY_SERVICE);
+                    dpm.removeActiveAdmin(adminReceiver);
+                }
             }
         }
     }

@@ -60,6 +60,11 @@
 
     <CheckBoxPreference
         android:defaultValue="false"
+        android:key="prefDisableNotifications"
+        android:title="@string/prefDisableNotifications" />
+
+    <CheckBoxPreference
+        android:defaultValue="false"
         android:key="prefAdminProtection"
         android:title="@string/prefAdminProtection" />
 
@@ -117,11 +122,6 @@
 	        android:key="prefDownloadViaCellularEnabled"
 	        android:title="@string/prefDownloadViaCellularEnabled"
 	        android:summary="@string/warning_download_via_cellular_enabled" />
-
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="prefRemoteAdminEnabled"
-            android:title="@string/prefRemoteAdminEnabled" />
     </PreferenceCategory>
 
 </PreferenceScreen>
