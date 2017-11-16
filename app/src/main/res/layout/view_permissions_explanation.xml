@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/imageView11"
         android:layout_gravity="center_horizontal"
-        android:src="@drawable/dc_logo"
+        android:src="@mipmap/open_deliver_launcher"
         android:layout_marginBottom="@dimen/padding_large"/>
 
     <TextView
