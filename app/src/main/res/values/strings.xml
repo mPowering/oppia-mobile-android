@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE resources [
-    <!ENTITY appName "OppiaMobile">
-    <!ENTITY companyName "Digital Campus"> ]>
+    <!ENTITY appName "Open Deliver">
+    <!ENTITY companyName "mPowering"> ]>
 <resources>
-<<<<<<< HEAD
-    <string name="app_logo_alt">Open Deliver Logo</string>
-
-
-    <!-- Dont need to define gcm values here anymore, as they are defined in google-services.json
-    <string name="gcm_defaultSenderId">1:1075863350964:android:e457f5046c8376a5</string>
-    string name="gcm_defaultSenderId">admin-api-cc4ba</string -->
-
-=======
     <string name="app_logo_alt">&companyName; Logo</string>
->>>>>>> upstream/master
     <string name="about_logged_in">Logged in as: %1$s</string>
     <string name="about_not_logged_in">Not logged in</string>
 
@@ -334,16 +324,7 @@
     <string name="empty_state_courses">There aren\'t any courses currently available to you on this server.</string>
     <string name="empty_state_media">Great! You now have all the media content for your courses downloaded onto your device.</string>
 	<string name="empty_state_scorecard">You don\'t have any courses installed yet. \nOnce you install a course, you will see your progress here.</string>
-	
-<<<<<<< HEAD
-    <string name="permissions.title">Open Deliver needs the following permissions to function properly:</string>
-    <string name="permissions.storage.title">read and modify contents of the SD card</string>
-    <string name="permissions.storage.description">Open Deliver needs access to the SD card to be able to store the downloaded media contents for the courses</string>
-    <string name="permissions.phone_state.title">read phone state and identity</string>
-    <string name="permissions.phone_state.description">Open Deliver needs access to the phone identity to get information about your device model and Android version</string>
-    <string name="permissions.allow_btn_text">Allow permissions</string>
-    <string name="permissions.not_askable.message">The app does not have the permissions needed to run. Please, go to Settings \> Apps \> Open Deliver \> Permissions to grant access to these permissions</string>
-=======
+
     <string name="permissions.title">&appName; needs the following permissions to function properly:</string>
     <string name="permissions.storage.title">read and modify contents of the SD card</string>
     <string name="permissions.storage.description">&appName; needs access to the SD card to be able to store the downloaded media contents for the courses</string>
@@ -351,7 +332,7 @@
     <string name="permissions.phone_state.description">&appName; needs access to the phone identity to get information about your device model and Android version</string>
     <string name="permissions.allow_btn_text">Allow permissions</string>
     <string name="permissions.not_askable.message">The app does not have the permissions needed to run. Please, go to Settings \> Apps \> &appName; > Permissions to grant access to these permissions</string>
->>>>>>> upstream/master
+
     <string name="permissions.not_askable.info">You see this message because permissions were prompted before and you denied them and checked \"Don\'t ask again\"</string>
     <string name="error_apikey_expired">Your API key expired. Please, log in again.</string>
 

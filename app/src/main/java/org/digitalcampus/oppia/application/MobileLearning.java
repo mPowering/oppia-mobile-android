@@ -42,7 +42,7 @@ public class MobileLearning extends Application {
 
 	public static final String TAG = MobileLearning.class.getSimpleName();
 	
-	public static final int APP_LOGO = R.drawable.dc_logo;
+	public static final int APP_LOGO = R.mipmap.opendeliver_logo;
 	
 	public static final String COURSE_XML = "module.xml";
 	public static final String COURSE_SCHEDULE_XML = "schedule.xml";
