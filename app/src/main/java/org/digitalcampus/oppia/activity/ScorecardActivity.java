@@ -17,7 +17,6 @@
 
 package org.digitalcampus.oppia.activity;
 
-<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,8 +29,6 @@ import org.digitalcampus.oppia.fragments.CourseScorecardFragment;
 import org.digitalcampus.oppia.model.Course;
 import org.digitalcampus.oppia.utils.ImageUtils;
 
-=======
->>>>>>> upstream/master
 import android.content.SharedPreferences;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
@@ -41,18 +38,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
-
-import org.digitalcampus.mobile.learning.R;
-import org.digitalcampus.oppia.adapter.ActivityPagerAdapter;
-import org.digitalcampus.oppia.fragments.BadgesFragment;
-import org.digitalcampus.oppia.fragments.CourseScorecardFragment;
-import org.digitalcampus.oppia.fragments.GlobalScorecardFragment;
-import org.digitalcampus.oppia.fragments.PointsFragment;
-import org.digitalcampus.oppia.model.Course;
-import org.digitalcampus.oppia.utils.ImageUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class ScorecardActivity extends AppActivity {
