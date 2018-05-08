@@ -36,6 +36,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +47,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+
 
 public class SectionListAdapter extends ArrayAdapter<Section>{
 
@@ -81,8 +83,8 @@ public class SectionListAdapter extends ArrayAdapter<Section>{
         TextView sectionTitle;
         TwoWayView sectionActivities;
     }
-
-	public View getView(int position, View convertView, ViewGroup parent) {
+    
+    public View getView(int position, View convertView, ViewGroup parent) {
 
         SectionViewHolder viewHolder;
         final ActivityAdapter innerListAdapter;
@@ -142,6 +144,7 @@ public class SectionListAdapter extends ArrayAdapter<Section>{
         class ActivityViewHolder{
             TextView activityTitle;
             ImageView activityImage;
+            View completedBadge;
             View activityContainer;
         }
 
@@ -149,9 +152,14 @@ public class SectionListAdapter extends ArrayAdapter<Section>{
         private String locale;
         private String courseLocation;
 
-        public ActivityAdapter(String locale, String courseLocation){
+        private int highlightColor;
+        private int normalColor;
+
+        ActivityAdapter(String locale, String courseLocation){
             this.locale = locale;
             this.courseLocation = courseLocation;
+            highlightColor = ContextCompat.getColor(ctx, R.color.highlight_secondary);
+            normalColor = ContextCompat.getColor(ctx, R.color.text_light);
         }
 
         public int getCount() {
@@ -177,6 +185,7 @@ public class SectionListAdapter extends ArrayAdapter<Section>{
                 viewHolder.activityContainer = convertView.findViewById(R.id.activity_object);
                 viewHolder.activityTitle = (TextView)  viewHolder.activityContainer.findViewById(R.id.activity_title);
                 viewHolder.activityImage = (ImageView)  viewHolder.activityContainer.findViewById(R.id.activity_image);
+                viewHolder.completedBadge = convertView.findViewById(R.id.completed_badge);
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (ActivityViewHolder) convertView.getTag();
@@ -194,7 +203,10 @@ public class SectionListAdapter extends ArrayAdapter<Section>{
             }
 
             boolean highlightActivity = activity.getCompleted() && prefs.getBoolean(PrefsActivity.PREF_HIGHLIGHT_COMPLETED, MobileLearning.DEFAULT_DISPLAY_COMPLETED);
-            viewHolder.activityContainer.setBackgroundResource(highlightActivity ? R.drawable.activity_background_completed : 0);
+            viewHolder.activityTitle.setTextColor(highlightActivity ? highlightColor : normalColor );
+            viewHolder.activityTitle.setBackgroundResource(highlightActivity ? R.drawable.completed_background_gradient : 0);
+            viewHolder.completedBadge.setVisibility(highlightActivity ? View.VISIBLE : View.GONE);
+            //viewHolder.activityContainer.setBackgroundResource(highlightActivity ? R.drawable.activity_background_completed : 0);
 
             return convertView;
         }
