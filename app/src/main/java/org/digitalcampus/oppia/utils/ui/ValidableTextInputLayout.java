@@ -10,7 +10,7 @@ import android.util.Log;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 
-import org.digitalcampus.mobile.learning.R;
+import org.opendeliver.oppia.R;
 
 public class ValidableTextInputLayout extends TextInputLayout {
 
