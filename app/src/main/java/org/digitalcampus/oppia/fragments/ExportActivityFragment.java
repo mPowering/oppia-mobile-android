@@ -36,7 +36,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.digitalcampus.mobile.learning.R;
+import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.activity.TagSelectActivity;
 import org.digitalcampus.oppia.adapter.ExportedTrackersFileAdapter;
 import org.digitalcampus.oppia.application.AdminSecurityManager;

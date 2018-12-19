@@ -8,9 +8,9 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.support.v4.content.FileProvider;
 
+import org.opendeliver.oppia.BuildConfig;
 import org.opendeliver.oppia.R;
 
-import org.digitalcampus.mobile.learning.BuildConfig;
 import org.digitalcampus.oppia.utils.storage.FileUtils;
 
 import java.io.File;

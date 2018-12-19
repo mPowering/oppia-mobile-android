@@ -1,26 +1,38 @@
-/* 
+/*
  * This file is part of OppiaMobile - https://digital-campus.org/
- * 
+ *
  * OppiaMobile is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * OppiaMobile is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with OppiaMobile. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.digitalcampus.oppia.activity;
 
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.Callable;
+import android.animation.ValueAnimator;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v4.view.ViewCompat;
+import android.support.v7.app.AlertDialog;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.widget.ListView;
 
 import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.adapter.SectionListAdapter;
@@ -37,56 +49,45 @@ import org.digitalcampus.oppia.task.ParseCourseXMLTask;
 import org.digitalcampus.oppia.utils.ImageUtils;
 import org.digitalcampus.oppia.utils.UIUtils;
 
-import android.animation.ValueAnimator;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.widget.ListView;
-
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 
 public class CourseIndexActivity extends AppActivity implements OnSharedPreferenceChangeListener, ParseCourseXMLTask.OnParseXmlListener {
 
-	public static final String TAG = CourseIndexActivity.class.getSimpleName();
+    public static final String TAG = CourseIndexActivity.class.getSimpleName();
     public static final String JUMPTO_TAG = "JumpTo";
     public static final int RESULT_JUMPTO = 99;
 
-	private Course course;
+    private Course course;
     private CompleteCourse parsedCourse;
     private ArrayList<Section> sections;
-	private SharedPreferences prefs;
-	private Activity baselineActivity;
-	private AlertDialog aDialog;
+    private SharedPreferences prefs;
+    private Activity baselineActivity;
+    private AlertDialog aDialog;
     private View loadingCourseView;
     private SectionListAdapter sla;
 
     private String digestJumpTo;
 
-    @Inject  CompleteCourseProvider completeCourseProvider; 
-		
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_course_index);
-	    initializeDagger();
-		
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		prefs.registerOnSharedPreferenceChangeListener(this);
+    @Inject  CompleteCourseProvider completeCourseProvider;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_course_index);
+        initializeDagger();
+
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.registerOnSharedPreferenceChangeListener(this);
         loadingCourseView =  findViewById(R.id.loading_course);
 
         Bundle bundle = this.getIntent().getExtras();
-		if (bundle != null) {
-			course = (Course) bundle.getSerializable(Course.TAG);
+        if (bundle != null) {
+            course = (Course) bundle.getSerializable(Course.TAG);
 
             String digest = (String) bundle.getSerializable(JUMPTO_TAG);
             if (digest != null){
@@ -112,7 +113,7 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
             }
         }
 
-	}
+    }
 
     private void initializeDagger() {
         MobileLearning app = (MobileLearning) getApplication();
@@ -120,18 +121,13 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
     }
 
     @Override
-	public void onStart() {
-		super.onStart();
-		// set image
-		if (course.getImageFile() != null) {
-			BitmapDrawable bm = ImageUtils.LoadBMPsdcard(course.getImageFileFromRoot(), this.getResources(),
-					R.drawable.opendeliver_logo);
-        }
+    public void onStart() {
+        super.onStart();
     }
 
     @Override
-	public void onResume() {
-		super.onResume();
+    public void onResume() {
+        super.onResume();
         if (aDialog != null) {
             aDialog.show();
         }
@@ -169,24 +165,24 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
                 showBaselineMessage(null);
             }
         }
-	}
+    }
 
-	@Override
-	public void onPause() {
-		if (aDialog != null) {
-			aDialog.dismiss();
-			aDialog = null;
+    @Override
+    public void onPause() {
+        if (aDialog != null) {
+            aDialog.dismiss();
+            aDialog = null;
         }
         super.onPause();
     }
 
     @Override
-	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.clear();
-		getMenuInflater().inflate(R.menu.activity_course_index, menu);
-		ArrayList<CourseMetaPage> ammp = course.getMetaPages();
-		int order = 104;
-		for (CourseMetaPage mmp : ammp) {
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.clear();
+        getMenuInflater().inflate(R.menu.activity_course_index, menu);
+        ArrayList<CourseMetaPage> ammp = course.getMetaPages();
+        int order = 104;
+        for (CourseMetaPage mmp : ammp) {
             Lang titleLang = mmp.getLang(
                     prefs.getString(PrefsActivity.PREF_LANGUAGE, Locale.getDefault().getLanguage()));
 
@@ -196,19 +192,19 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
                 order++;
             }
 
-		}
-		UIUtils.showUserData(menu, this, course);
-		return true;
-	}
+        }
+        UIUtils.showUserData(menu, this, course);
+        return true;
+    }
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
 
-		int itemId = item.getItemId();
-		if (itemId == R.id.menu_language) {
-			createLanguageDialog();
-			return true;
-		} else if (itemId == android.R.id.home) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_language) {
+            createLanguageDialog();
+            return true;
+        } else if (itemId == android.R.id.home) {
             this.finish();
             return true;
         } else {
@@ -230,22 +226,22 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
             startActivityForResult(i, 1);
             return true;
         }
-	}
+    }
 
-	private void createLanguageDialog() {
+    private void createLanguageDialog() {
         UIUtils.createLanguageDialog(this, course.getMultiLangInfo().getLangs(), prefs, new Callable<Boolean>() {
             public Boolean call() throws Exception {
                 CourseIndexActivity.this.onStart();
                 return true;
             }
         });
-	}
+    }
 
     private void initializeCourseIndex(boolean animate){
 
         final ListView listView = (ListView) findViewById(R.id.section_list);
-	if (listView == null) return;        
-	ViewCompat.setNestedScrollingEnabled(listView, true);
+        if (listView == null) return;
+        ViewCompat.setNestedScrollingEnabled(listView, true);
         sla = new SectionListAdapter(CourseIndexActivity.this, course, sections, new SectionListAdapter.CourseClickListener() {
             @Override
             public void onActivityClicked(String activityDigest) {
@@ -369,12 +365,12 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
         });
     }
 
-	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		// update the points/badges by invalidating the menu
-		if(key.equalsIgnoreCase(PrefsActivity.PREF_TRIGGER_POINTS_REFRESH)){
-			supportInvalidateOptionsMenu();
-		}
-	}
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        // update the points/badges by invalidating the menu
+        if(key.equalsIgnoreCase(PrefsActivity.PREF_TRIGGER_POINTS_REFRESH)){
+            supportInvalidateOptionsMenu();
+        }
+    }
 
     //@Override
     public void onParseComplete(CompleteCourse parsed) {

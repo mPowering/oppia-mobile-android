@@ -22,7 +22,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import org.digitalcampus.mobile.learning.R;
+import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.activity.PrefsActivity;
 import org.digitalcampus.oppia.application.DbHelper;
 import org.digitalcampus.oppia.application.MobileLearning;
@@ -75,6 +75,7 @@ public class CourseInstall {
             //then was invalid zip file and should be removed
             FileUtils.cleanUp(tempdir, Storage.getDownloadPath(ctx) + filename);
             listener.onError(ctx.getString(R.string.error_installing_course, shortname));
+            Log.d(TAG,"Invalid zip file");
             return;
         }
 
@@ -82,6 +83,7 @@ public class CourseInstall {
         try {
             courseDir = tempdir.list()[0]; // use this to get the course name
         } catch (ArrayIndexOutOfBoundsException aioobe) {
+            Log.d(TAG,"Cannot get courseDir");
             FileUtils.cleanUp(tempdir, Storage.getDownloadPath(ctx) + filename);
             aioobe.printStackTrace();
             Log.d(TAG, "Error: " + aioobe.getMessage());

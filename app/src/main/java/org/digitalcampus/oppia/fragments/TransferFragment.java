@@ -26,7 +26,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.digitalcampus.mobile.learning.R;
+import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.activity.DeviceListActivity;
 import org.digitalcampus.oppia.adapter.TransferCourseListAdapter;
 import org.digitalcampus.oppia.listener.InstallCourseListener;

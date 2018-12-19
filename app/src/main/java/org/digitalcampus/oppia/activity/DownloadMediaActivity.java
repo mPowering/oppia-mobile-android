@@ -1,30 +1,44 @@
-/* 
+/*
  * This file is part of OppiaMobile - https://digital-campus.org/
- * 
+ *
  * OppiaMobile is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * OppiaMobile is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with OppiaMobile. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.digitalcampus.oppia.activity;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.ArrayList;
+import android.animation.ValueAnimator;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.os.Environment;
+import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.animation.TranslateAnimation;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.splunk.mint.Mint;
 
 import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.adapter.DownloadMediaListAdapter;
@@ -39,36 +53,22 @@ import org.digitalcampus.oppia.utils.storage.ExternalStorageStrategy;
 import org.digitalcampus.oppia.utils.storage.FileUtils;
 import org.digitalcampus.oppia.utils.storage.Storage;
 
-import com.splunk.mint.Mint;
-
-import android.animation.ValueAnimator;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.os.Environment;
-import android.preference.PreferenceManager;
-import android.util.Log;
-import android.view.ActionMode;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.animation.TranslateAnimation;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.ArrayList;
 
 public class DownloadMediaActivity extends AppActivity implements DownloadMediaListener {
 
-	public static final String TAG = DownloadMediaActivity.class.getSimpleName();
+    public static final String TAG = DownloadMediaActivity.class.getSimpleName();
 
     private SharedPreferences prefs;
     private ArrayList<Media> missingMedia;
-	private DownloadMediaListAdapter dmla;
+    private DownloadMediaListAdapter dmla;
     private DownloadBroadcastReceiver receiver;
     Button downloadViaPCBtn;
     private TextView emptyState;
@@ -80,29 +80,29 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
     private ArrayList<Media> mediaSelected;
 
     public enum DownloadMode { INDIVIDUALLY, DOWNLOAD_ALL, STOP_ALL }
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_download_media);
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_download_media);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-		Bundle bundle = this.getIntent().getExtras();
-		if (bundle != null) {
-			missingMedia = (ArrayList<Media>) bundle.getSerializable(DownloadMediaActivity.TAG);
-		}
+        Bundle bundle = this.getIntent().getExtras();
+        if (bundle != null) {
+            missingMedia = (ArrayList<Media>) bundle.getSerializable(DownloadMediaActivity.TAG);
+        }
         else{
             missingMedia = new ArrayList<>();
         }
 
         mediaSelected = new ArrayList<>();
 
-		dmla = new DownloadMediaListAdapter(this, missingMedia);
+        dmla = new DownloadMediaListAdapter(this, missingMedia);
         dmla.setOnClickListener(new DownloadMediaListener());
 
         mediaList = (ListView) findViewById(R.id.missing_media_list);
-		mediaList.setAdapter(dmla);
+        mediaList.setAdapter(dmla);
 
         mediaList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
 
@@ -141,10 +141,10 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
                         public void onClick(View v) {
                             DownloadMode downloadMode = downloadSelected.getText()
                                     .equals(getString(R.string.missing_media_download_selected)) ? DownloadMode.DOWNLOAD_ALL
-                                                                                                 : DownloadMode.STOP_ALL;
+                                    : DownloadMode.STOP_ALL;
                             downloadSelected.setText(downloadSelected.getText()
                                     .equals(getString(R.string.missing_media_download_selected)) ? getString(R.string.missing_media_stop_selected)
-                                                                                                 : getString(R.string.missing_media_download_selected));
+                                    : getString(R.string.missing_media_download_selected));
 
                             for(Media m : mediaSelected){
                                 downloadMedia(m, downloadMode);
@@ -214,22 +214,22 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
         downloadSelected = (TextView) this.findViewById(R.id.download_selected);
         unselectAll = (TextView) this.findViewById(R.id.unselect_all);
 
-		
-		downloadViaPCBtn = (Button) this.findViewById(R.id.download_media_via_pc_btn);
-		downloadViaPCBtn.setOnClickListener(new OnClickListener() {
+
+        downloadViaPCBtn = (Button) this.findViewById(R.id.download_media_via_pc_btn);
+        downloadViaPCBtn.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 downloadViaPC();
             }
         });
 
-		Media.resetMediaScan(prefs);
+        Media.resetMediaScan(prefs);
 
         emptyState = (TextView) findViewById(R.id.empty_state);
-	}
-	
-	@Override
-	public void onResume(){
-		super.onResume();
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
         if ((missingMedia != null) && !missingMedia.isEmpty()) {
             //We already have loaded media (coming from orientationchange)
             dmla.sortByFilename();
@@ -248,7 +248,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
         registerReceiver(receiver, broadcastFilter);
 
         invalidateOptionsMenu();
-	}
+    }
 
     @Override
     public void onPause(){
@@ -317,7 +317,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
         }
     }
 
-	private void downloadViaPC(){
+    private void downloadViaPC(){
 
         if (Storage.getStorageStrategy().getStorageType().equals(PrefsActivity.STORAGE_OPTION_INTERNAL)){
             UIUtils.showAlert(this, R.string.prefStorageLocation, this.getString(R.string.download_via_pc_extenal_storage));
@@ -345,20 +345,20 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
             }
             html = html.replace("##download_files##", downloadData);
 
-		    File file = new File(Environment.getExternalStorageDirectory(),filename);
-			f = new FileOutputStream(file);
-			out = new OutputStreamWriter(new FileOutputStream(file));
-			out.write(html);
-			out.close();
-			f.close();
-			UIUtils.showAlert(this, R.string.info, this.getString(R.string.download_via_pc_message,filename));
-		} catch (FileNotFoundException fnfe) {
-			Mint.logException(fnfe);
+            File file = new File(Environment.getExternalStorageDirectory(),filename);
+            f = new FileOutputStream(file);
+            out = new OutputStreamWriter(new FileOutputStream(file));
+            out.write(html);
+            out.close();
+            f.close();
+            UIUtils.showAlert(this, R.string.info, this.getString(R.string.download_via_pc_message,filename));
+        } catch (FileNotFoundException fnfe) {
+            Mint.logException(fnfe);
             Log.d(TAG, "File not found", fnfe);
-		} catch (IOException ioe) {
-			Mint.logException(ioe);
+        } catch (IOException ioe) {
+            Mint.logException(ioe);
             Log.d(TAG, "IOException", ioe);
-		} finally {
+        } finally {
             if(out != null){
                 try {
                     out.close();
@@ -374,7 +374,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
                 }
             }
         }
-	}
+    }
 
     @Override
     public void onDownloadProgress(String fileUrl, int progress) {
@@ -435,8 +435,8 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
             }
         }else{
             if(mode.equals(DownloadMode.STOP_ALL) ||
-                mode.equals(DownloadMode.INDIVIDUALLY)) {
-                 stopDownload(mediaToDownload);
+                    mode.equals(DownloadMode.INDIVIDUALLY)) {
+                stopDownload(mediaToDownload);
             }
         }
 
@@ -524,13 +524,13 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
     }
 
     private class DownloadMediaListener implements ListInnerBtnOnClickListener {
-    	
+
         //@Override
         public void onClick(int position) {
             Log.d(DownloadMediaListener.class.getSimpleName(), "Clicked " + position);
             Media mediaToDownload = missingMedia.get(position);
 
-        	downloadMedia(mediaToDownload, DownloadMode.INDIVIDUALLY);
+            downloadMedia(mediaToDownload, DownloadMode.INDIVIDUALLY);
         }
     }
 }

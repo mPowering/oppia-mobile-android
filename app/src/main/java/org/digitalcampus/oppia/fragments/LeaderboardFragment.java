@@ -13,7 +13,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 
-import org.digitalcampus.mobile.learning.R;
+import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.activity.AppActivity;
 import org.digitalcampus.oppia.adapter.LeaderboardAdapter;
 import org.digitalcampus.oppia.application.DbHelper;

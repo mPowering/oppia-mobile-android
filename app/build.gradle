@@ -13,15 +13,15 @@ repositories {
 }
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion "25.0.3"
 
     defaultConfig {
         applicationId "org.opendeliver.oppia"
-        versionCode 65
-        versionName "6.5.0"
+        versionCode 66
+        versionName "6.6.0"
         minSdkVersion 14
-        targetSdkVersion 25
+        targetSdkVersion 26
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 

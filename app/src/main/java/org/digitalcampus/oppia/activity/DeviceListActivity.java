@@ -36,7 +36,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.digitalcampus.mobile.learning.R;
+import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.application.PermissionsManager;
 import org.digitalcampus.oppia.utils.UIUtils;
 
