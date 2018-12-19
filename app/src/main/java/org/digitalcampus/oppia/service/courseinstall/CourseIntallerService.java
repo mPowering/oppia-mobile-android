@@ -15,7 +15,7 @@
  * along with OppiaMobile. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.digitalcampus.oppia.service;
+package org.digitalcampus.oppia.service.courseinstall;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -85,25 +85,27 @@ public class CourseIntallerService extends IntentService {
 
     private ArrayList<String> tasksCancelled;
     private ArrayList<String> tasksDownloading;
-    private SharedPreferences prefs;
     private ApiEndpoint apiEndpoint;
 
     private static CourseIntallerService currentInstance;
+
     private static void setInstance(CourseIntallerService instance){
         currentInstance = instance;
     }
+
     public static ArrayList<String> getTasksDownloading(){
         if (currentInstance != null){
             synchronized (currentInstance){
                 return currentInstance.tasksDownloading;
             }
         }
-        return null;
+        return new ArrayList<String>();
     }
 
     public CourseIntallerService() {
         this(new RemoteApiEndpoint());
     }
+
     public CourseIntallerService(ApiEndpoint api) {
         super(TAG);
         apiEndpoint = api;
@@ -112,7 +114,6 @@ public class CourseIntallerService extends IntentService {
     @Override
     public void onCreate(){
         super.onCreate();
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
         CourseIntallerService.setInstance(this);
 
     }
@@ -149,9 +150,10 @@ public class CourseIntallerService extends IntentService {
         }
 
         if (intent.getStringExtra(SERVICE_ACTION).equals(ACTION_DOWNLOAD)){
-            String fileUrl = intent.getStringExtra(SERVICE_URL);
-            String shortname = intent.getStringExtra(SERVICE_SHORTNAME);
+            final String fileUrl = intent.getStringExtra(SERVICE_URL);
+            final String shortname = intent.getStringExtra(SERVICE_SHORTNAME);
             Double versionID = intent.getDoubleExtra(SERVICE_VERSIONID, 0);
+            String filename = Course.getLocalFilename(shortname, versionID);
 
             if (isCancelled(fileUrl)) {
                 //If it was cancelled before starting, we do nothing
@@ -161,7 +163,33 @@ public class CourseIntallerService extends IntentService {
                 return;
             }
             boolean success = downloadCourseFile(fileUrl, shortname, versionID);
-            if (success){ installDownloadedCourse(fileUrl, shortname, versionID); }
+            if (success){
+                CourseInstall.installDownloadedCourse(this, filename, shortname, new CourseInstall.CourseInstallingListener() {
+                    @Override
+                    public void onInstallProgress(int progress) {
+                        sendBroadcast(fileUrl, ACTION_INSTALL, ""+progress);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        sendBroadcast(fileUrl, ACTION_FAILED, message);
+                        removeDownloading(fileUrl);
+                    }
+
+                    @Override
+                    public void onFail(String message) {
+                        sendBroadcast(fileUrl, ACTION_FAILED, message);
+                        removeDownloading(fileUrl);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        removeDownloading(fileUrl);
+                        sendBroadcast(fileUrl, ACTION_COMPLETE, null);
+                    }
+                });
+
+            }
         }
         else if (intent.getStringExtra(SERVICE_ACTION).equals(ACTION_UPDATE)){
             String scheduleURL = intent.getStringExtra(SERVICE_SCHEDULEURL);
@@ -171,118 +199,6 @@ public class CourseIntallerService extends IntentService {
 
     }
 
-    private void installDownloadedCourse(String fileUrl, String shortname, Double versionID) {
-        File tempdir = new File(Storage.getStorageLocationRoot(this) + "temp/");
-        String filename = getLocalFilename(shortname, versionID);
-        File zipFile = new File(Storage.getDownloadPath(this), filename);
-        tempdir.mkdirs();
-
-        long startTime = System.currentTimeMillis();
-        sendBroadcast(fileUrl, ACTION_INSTALL, ""+1);
-        boolean unzipResult = FileUtils.unzipFiles(Storage.getDownloadPath(this), filename, tempdir.getAbsolutePath());
-
-        if (!unzipResult){
-            //then was invalid zip file and should be removed
-            FileUtils.cleanUp(tempdir, Storage.getDownloadPath(this) + filename);
-            sendBroadcast(fileUrl, ACTION_FAILED, "" + this.getString(R.string.error_installing_course, shortname));
-            removeDownloading(fileUrl);
-            return;
-        }
-        String[] courseDirs = tempdir.list(); // use this to get the course name
-
-        sendBroadcast(fileUrl, ACTION_INSTALL, "" + 10);
-
-        String courseXMLPath;
-        String courseScheduleXMLPath;
-        String courseTrackerXMLPath;
-        // check that it's unzipped etc correctly
-        try {
-            courseXMLPath = tempdir + File.separator + courseDirs[0] + File.separator + MobileLearning.COURSE_XML;
-            courseScheduleXMLPath = tempdir + File.separator + courseDirs[0] + File.separator + MobileLearning.COURSE_SCHEDULE_XML;
-            courseTrackerXMLPath = tempdir + File.separator + courseDirs[0] + File.separator + MobileLearning.COURSE_TRACKER_XML;
-        } catch (ArrayIndexOutOfBoundsException aioobe){
-            FileUtils.cleanUp(tempdir, Storage.getDownloadPath(this) + filename);
-            logAndNotifyError(fileUrl, aioobe);
-            return;
-        }
-
-        // check a module.xml file exists and is a readable XML file
-        CourseXMLReader cxr;
-        CourseScheduleXMLReader csxr;
-        CourseTrackerXMLReader ctxr;
-        CompleteCourse c;
-        try {
-            cxr = new CourseXMLReader(courseXMLPath, 0, this);
-            cxr.parse(CourseXMLReader.ParseMode.COMPLETE);
-            c = cxr.getParsedCourse();
-
-            csxr = new CourseScheduleXMLReader(courseScheduleXMLPath);
-			ctxr = new CourseTrackerXMLReader(courseTrackerXMLPath);
-        } catch (InvalidXMLException e) {
-            sendBroadcast(fileUrl, ACTION_FAILED, e.getMessage());
-            return;
-        }
-
-        c.setShortname(courseDirs[0]);
-        String title = c.getMultiLangInfo().getTitle(prefs.getString(PrefsActivity.PREF_LANGUAGE, Locale.getDefault().getLanguage()));
-        sendBroadcast(fileUrl, ACTION_INSTALL, ""+20);
-
-        boolean success = false;
-
-        DbHelper db = DbHelper.getInstance(this);
-        long courseId = db.addOrUpdateCourse(c);
-        if (courseId != -1) {
-            File src = new File(tempdir + File.separator + courseDirs[0]);
-            File dest = new File(Storage.getCoursesPath(this));
-
-            db.insertActivities(c.getActivities(courseId));
-            sendBroadcast(fileUrl, ACTION_INSTALL, "" + 50);
-            
-            long userId = db.getUserId(SessionManager.getUsername(this));
-            db.resetCourse(courseId, userId);
-            db.insertTrackers(ctxr.getTrackers(courseId, userId));
-            db.insertQuizAttempts(ctxr.getQuizAttempts(courseId, userId));
-            
-            sendBroadcast(fileUrl, ACTION_INSTALL, "" + 70);
-
-            // Delete old course
-            File oldCourse = new File(Storage.getCoursesPath(this) + courseDirs[0]);
-            FileUtils.deleteDir(oldCourse);
-
-            // move from temp to courses dir
-            success = src.renameTo(new File(dest, src.getName()));
-
-            if (!success) {
-                sendBroadcast(fileUrl, ACTION_FAILED, "" + this.getString(R.string.error_installing_course, title));
-                removeDownloading(fileUrl);
-                return;
-            }
-        }  else {
-            sendBroadcast(fileUrl, ACTION_FAILED, "" + this.getString(R.string.error_latest_already_installed, title));
-            removeDownloading(fileUrl);
-        }
-        // add schedule
-        // put this here so even if the course content isn't updated the schedule will be
-        db.insertSchedule(csxr.getSchedule());
-        db.updateScheduleVersion(courseId, csxr.getScheduleVersion());
-
-        sendBroadcast(fileUrl, ACTION_INSTALL, "" + 80);
-        if (success){ SearchUtils.indexAddCourse(this, c); }
-
-        // delete temp directory
-        FileUtils.deleteDir(tempdir);
-        sendBroadcast(fileUrl, ACTION_INSTALL, "" + 90);
-
-        // delete zip file from download dir
-        deleteFile(zipFile);
-
-        long estimatedTime = System.currentTimeMillis() - startTime;
-        Log.d(TAG, "MeasureTime - " + c.getShortname() + ": " + estimatedTime + "ms");
-
-        Log.d(TAG, fileUrl + " succesfully downloaded");
-        removeDownloading(fileUrl);
-        sendBroadcast(fileUrl, ACTION_COMPLETE, null);
-    }
 
     @Override
     public void onDestroy(){
@@ -291,8 +207,7 @@ public class CourseIntallerService extends IntentService {
     }
 
     private void logAndNotifyError(String fileUrl, Exception e){
-        e.printStackTrace();
-        Log.d(TAG, "Error: " + e.getMessage());
+        Log.d(TAG, "Error: " + e.getMessage(), e);
         sendBroadcast(fileUrl, ACTION_FAILED, this.getString(R.string.error_media_download));
         removeDownloading(fileUrl);
     }
@@ -355,6 +270,8 @@ public class CourseIntallerService extends IntentService {
 
         long startTime = System.currentTimeMillis();
         File downloadedFile = null;
+        FileOutputStream f = null;
+
         try {
         	DbHelper db = DbHelper.getInstance(this);
         	User u = db.getUser(SessionManager.getUsername(this));
@@ -367,7 +284,7 @@ public class CourseIntallerService extends IntentService {
             Response response = client.newCall(request).execute();
 
             long fileLength = response.body().contentLength();
-            Log.d(TAG, "Content-lenght: " + fileLength);
+            Log.d(TAG, "Content-length: " + fileLength);
             long availableStorage = Storage.getAvailableStorageSize(this);
 
             if (fileLength >= availableStorage){
@@ -376,9 +293,9 @@ public class CourseIntallerService extends IntentService {
                 return false;
             }
 
-            String localFileName = getLocalFilename(shortname, versionID);
+            String localFileName = Course.getLocalFilename(shortname, versionID);
             downloadedFile = new File(Storage.getDownloadPath(this),localFileName);
-            FileOutputStream f = new FileOutputStream(downloadedFile);
+            f = new FileOutputStream(downloadedFile);
             InputStream in = response.body().byteStream();
 
             byte[] buffer = new byte[8192];
@@ -389,7 +306,7 @@ public class CourseIntallerService extends IntentService {
                 //If received a cancel action while downloading, stop it
                 if (isCancelled(fileUrl)) {
                     Log.d(TAG, "Course " + localFileName + " cancelled while downloading. Deleting temp file...");
-                    deleteFile(downloadedFile);
+                    FileUtils.deleteFile(downloadedFile);
                     removeCancelled(fileUrl);
                     removeDownloading(fileUrl);
                     return false;
@@ -405,23 +322,29 @@ public class CourseIntallerService extends IntentService {
             }
             in.close();
             f.flush();
-            f.close();
-
         } catch (MalformedURLException e) {
             logAndNotifyError(fileUrl, e);
             return false;
         } catch (ProtocolException e) {
-            this.deleteFile(downloadedFile);
+            FileUtils.deleteFile(downloadedFile);
             logAndNotifyError(fileUrl, e);
             return false;
         } catch (IOException e) {
-            this.deleteFile(downloadedFile);
+            FileUtils.deleteFile(downloadedFile);
             logAndNotifyError(fileUrl, e);
             return false;
         } catch (UserNotFoundException unfe) {
             logAndNotifyError(fileUrl, unfe);
             return false;
-		}
+		} finally {
+            if (f != null){
+                try {
+                    f.close();
+                } catch (IOException ioe) {
+                    Log.d(TAG, "couldn't close FileOutputStream object", ioe);
+                }
+            }
+        }
 
         Log.d(TAG, fileUrl + " succesfully downloaded");
         removeDownloading(fileUrl);
@@ -501,20 +424,10 @@ public class CourseIntallerService extends IntentService {
             removeDownloading(scheduleUrl);
         }
 
-        Log.d(TAG, scheduleUrl + " succesfully downloaded");
+        Log.d(TAG, scheduleUrl + " successfully downloaded");
         removeDownloading(scheduleUrl);
         sendBroadcast(scheduleUrl, ACTION_COMPLETE, null);
         return true;
     }
 
-    private String getLocalFilename(String shortname, Double versionID){
-        return shortname+"-"+String.format("%.0f",versionID)+".zip";
-    }
-
-    private void deleteFile(File file){
-        if ((file != null) && file.exists() && !file.isDirectory()){
-            boolean deleted = file.delete();
-            Log.d(TAG, file.getName() + (deleted? " deleted succesfully.": " deletion failed!"));
-        }
-    }
 }

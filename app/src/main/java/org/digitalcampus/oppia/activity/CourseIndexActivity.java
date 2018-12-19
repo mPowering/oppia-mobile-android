@@ -25,7 +25,6 @@ import java.util.concurrent.Callable;
 import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.adapter.SectionListAdapter;
 import org.digitalcampus.oppia.application.MobileLearning;
-import org.digitalcampus.oppia.exception.InvalidXMLException;
 import org.digitalcampus.oppia.model.Activity;
 import org.digitalcampus.oppia.model.CompleteCourse;
 import org.digitalcampus.oppia.model.CompleteCourseProvider;
@@ -37,7 +36,6 @@ import org.digitalcampus.oppia.service.TrackerService;
 import org.digitalcampus.oppia.task.ParseCourseXMLTask;
 import org.digitalcampus.oppia.utils.ImageUtils;
 import org.digitalcampus.oppia.utils.UIUtils;
-import org.digitalcampus.oppia.utils.xmlreaders.CourseXMLReader;
 
 import android.animation.ValueAnimator;
 import android.content.DialogInterface;
@@ -48,17 +46,12 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
+
 
 import javax.inject.Inject;
 
@@ -90,21 +83,6 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		prefs.registerOnSharedPreferenceChangeListener(this);
         loadingCourseView =  findViewById(R.id.loading_course);
-
-        /*
-        ----- CollapsingToolbar layout
-        FloatingActionButton myFab = (FloatingActionButton)  findViewById(R.id.scorecard_fab);
-        if (myFab != null) {
-            myFab.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    Intent i = new Intent(CourseIndexActivity.this, ScorecardActivity.class);
-                    Bundle tb = new Bundle();
-                    tb.putSerializable(Course.TAG, course);
-                    i.putExtras(tb);
-                    startActivityForResult(i, 1);
-                }
-            });
-        }*/
 
         Bundle bundle = this.getIntent().getExtras();
 		if (bundle != null) {
@@ -183,7 +161,7 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
         }
         editor.apply();
 
-        if ((parsedCourse != null) && (sections != null) && (sections.size()>0)){
+        if ((parsedCourse != null) && (sections != null) && (!sections.isEmpty())){
             parsedCourse.setCourseId(course.getCourseId());
             parsedCourse.updateCourseActivity(this);
             sla.notifyDataSetChanged();
@@ -303,7 +281,6 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
 
     private boolean isBaselineCompleted() {
         ArrayList<Activity> baselineActs = parsedCourse.getBaselineActivities();
-        // TODO how to handle if more than one baseline activity
         for (Activity a : baselineActs) {
             if (!a.isAttempted()) {
                 this.baselineActivity = a;
@@ -403,6 +380,8 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
     public void onParseComplete(CompleteCourse parsed) {
         parsedCourse = parsed;
         course.setMetaPages(parsedCourse.getMetaPages());
+        course.setMedia(parsedCourse.getMedia());
+        course.setGamificationEvents(parsedCourse.getGamification());
         sections = parsedCourse.getSections();
 
         boolean baselineCompleted = isBaselineCompleted();
@@ -417,11 +396,9 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1) {
-            if(resultCode == RESULT_JUMPTO){
-                String digest = data.getStringExtra(JUMPTO_TAG);
-                startCourseActivityByDigest(digest);
-            }
+        if (requestCode == 1 && resultCode == RESULT_JUMPTO){
+            String digest = data.getStringExtra(JUMPTO_TAG);
+            startCourseActivityByDigest(digest);
         }
     }
 }

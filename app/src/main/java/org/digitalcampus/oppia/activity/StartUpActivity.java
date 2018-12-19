@@ -40,7 +40,9 @@ import org.digitalcampus.oppia.listener.PreloadAccountsListener;
 import org.digitalcampus.oppia.listener.StorageAccessListener;
 import org.digitalcampus.oppia.listener.UpgradeListener;
 import org.digitalcampus.oppia.model.DownloadProgress;
+import org.digitalcampus.oppia.model.Media;
 import org.digitalcampus.oppia.service.GCMRegistrationService;
+import org.digitalcampus.oppia.task.ImportLeaderboardsTask;
 import org.digitalcampus.oppia.task.InstallDownloadedCoursesTask;
 import org.digitalcampus.oppia.task.Payload;
 import org.digitalcampus.oppia.task.PostInstallTask;
@@ -51,7 +53,7 @@ import org.digitalcampus.oppia.utils.storage.Storage;
 import java.io.File;
 import java.util.ArrayList;
 
-public class StartUpActivity extends Activity implements UpgradeListener, PostInstallListener, InstallCourseListener, PreloadAccountsListener {
+public class StartUpActivity extends Activity implements UpgradeListener, PostInstallListener, InstallCourseListener, PreloadAccountsListener, ImportLeaderboardsTask.ImportLeaderboardListener {
 
 	public final static String TAG = StartUpActivity.class.getSimpleName();
 	private TextView tvProgress;
@@ -209,12 +211,17 @@ public class StartUpActivity extends Activity implements UpgradeListener, PostIn
 		this.installCourses();
 	}
 
-	public void downloadComplete(Payload p) { }
-	public void downloadProgressUpdate(DownloadProgress dp) { }
+	public void downloadComplete(Payload p) {
+        // no need to show download complete in this activity
+    }
+
+	public void downloadProgressUpdate(DownloadProgress dp) {
+        // no need to show download progress in this activity
+    }
 
 	public void installComplete(Payload p) {
-		if(p.getResponseData().size()>0){
-            prefs.edit().putLong(PrefsActivity.PREF_LAST_MEDIA_SCAN, 0).apply();
+		if(!p.getResponseData().isEmpty()){
+            Media.resetMediaScan(prefs);
 		}
 		preloadAccounts();
 	}
@@ -228,6 +235,19 @@ public class StartUpActivity extends Activity implements UpgradeListener, PostIn
         if ((payload!=null) && payload.isResult()){
             Toast.makeText(this, payload.getResultResponse(), Toast.LENGTH_LONG).show();
         }
+        ImportLeaderboardsTask imTask = new ImportLeaderboardsTask(this);
+        imTask.setListener(this);
+        imTask.execute(payload);
+
+    }
+
+    @Override
+    public void onLeaderboardImportProgress(String message) {
+
+    }
+
+    @Override
+    public void onLeaderboardImportComplete(Boolean success, String message) {
         endStartUpScreen();
     }
 }

@@ -17,8 +17,13 @@
 
 package org.digitalcampus.oppia.model;
 
+import android.text.TextUtils;
+
 import org.digitalcampus.oppia.application.MobileLearning;
 import org.joda.time.DateTime;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class QuizAttempt {
 
@@ -35,7 +40,9 @@ public class QuizAttempt {
 	private float maxscore;
 	private boolean passed;
 	private User user;
-	
+	private String event;
+    private int points;
+
 	public DateTime getDatetime() {
 		return datetime;
 	}
@@ -131,5 +138,31 @@ public class QuizAttempt {
 	public void setUser(User user) {
 		this.user = user;
 	}
+
+	public static String asJSONCollectionString(Collection<QuizAttempt> quizAttempts){
+
+		ArrayList<String> jsonQuizAttempts = new ArrayList<>();
+		for (QuizAttempt qa : quizAttempts){
+			jsonQuizAttempts.add(qa.getData());
+		}
+		return "[" +  TextUtils.join(",", jsonQuizAttempts) + "]";
+
+	}
+
+    public String getEvent() {
+        return event;
+    }
+
+    public void setEvent(String event) {
+        this.event = event;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+    }
 	
 }

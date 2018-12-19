@@ -17,8 +17,17 @@
 
 package org.digitalcampus.oppia.model;
 
+import android.text.TextUtils;
+
 import org.digitalcampus.oppia.application.MobileLearning;
+import org.digitalcampus.oppia.application.Tracker;
 import org.joda.time.DateTime;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static java.util.stream.Collectors.mapping;
 
 public class TrackerLog {
 
@@ -31,6 +40,8 @@ public class TrackerLog {
 	private boolean completed;
 	private long courseId;
 	private long userId;
+	private String event;
+	private int points;
 	
 	public long getId() {
 		return id;
@@ -91,6 +102,30 @@ public class TrackerLog {
 	public void setUserId(long userId) {
 		this.userId = userId;
 	}
+
+	public String getEvent() {
+		return event;
+	}
+
+	public void setEvent(String event) {
+		this.event = event;
+	}
+
+	public int getPoints() {
+		return points;
+	}
+
+	public void setPoints(int points) {
+		this.points = points;
+	}
+
+	@Override
+	public String toString(){
+		return this.content;
+	}
 	
-	
+	public static String asJSONCollectionString(Collection<TrackerLog> trackerLogs){
+		return "[" +  TextUtils.join(",", trackerLogs) + "]";
+
+	}
 }

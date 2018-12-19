@@ -48,7 +48,6 @@ public class MultiChoiceWidget extends QuestionWidget{
 		LinearLayout responsesLL = (LinearLayout) view.findViewById(R.id.questionresponses);
     	responsesLL.removeAllViews();
     	RadioGroup responsesRG = new RadioGroup(ctx);
-    	// TODO change to use getchild views (like the MultiSelect)
     	responsesRG.setId(R.id.multichoiceRadioGroup);
     	responsesLL.addView(responsesRG);
 		String shuffle = question.getProp("shuffleanswers");
@@ -76,7 +75,6 @@ public class MultiChoiceWidget extends QuestionWidget{
 	}
 	
 	public List<String> getQuestionResponses(List<Response> responses){
-		// TODO change to use getchild views (like the MultiSelect)
 		RadioGroup responsesRG = (RadioGroup) view.findViewById(R.id.multichoiceRadioGroup);
 		int resp = responsesRG.getCheckedRadioButtonId();
     	View rb = responsesRG.findViewById(resp);
@@ -86,7 +84,7 @@ public class MultiChoiceWidget extends QuestionWidget{
 			response.add(responses.get(idx).getTitle(currentUserLang));
     		return response;
     	}
-    	return null;
+		return new ArrayList<>();
 	}
 
 }

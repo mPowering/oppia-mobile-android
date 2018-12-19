@@ -16,7 +16,6 @@
     <string name="menu_font_decrease">Decrease text size</string>
     <string name="menu_help">Help</string>
     <string name="menu_logout">Logout</string>
-    <string name="menu_monitor">Monitor</string>
     <string name="menu_read_aloud">Read aloud</string>
     <string name="menu_return_to_courses">Return to courses</string>
     <string name="menu_scorecard">Scorecard</string>
@@ -54,7 +53,6 @@
     <string name="title_activity_course_index">Course Index</string>
     <string name="title_activity_course">Activity</string>
     <string name="title_course_meta">About</string>
-    <string name="title_monitor">Monitor</string>
     <string name="title_stats_submitted">No activities submitted to server</string>
     <string name="title_stats_unsubmitted">No activities waiting to submit</string>
     <string name="title_prefs">Settings</string>
@@ -103,7 +101,8 @@
     <string name="prefNoScheduleReminders_summary">How many suggested activities to display</string>
     <string name="prefServer">Server</string>
     <string name="prefServer_errorTitle">Invalid URL</string>
-    <string name="prefServer_errorDescription">Please, enter a well-formed URL corresponding to your &appName; server endpoint</string>
+    <string name="prefServer_errorDescription">Please, enter a well-formed URL corresponding to your &appName;
+        server endpoint</string>
     <string name="prefServerTimeoutConnection">Connection timeout</string>
     <string name="prefServerTimeoutResponse">Response timeout</string>
     <string name="prefInt_errorTitle">Invalid value</string>
@@ -184,6 +183,7 @@
     <string name="update_schedule">Update Schedule</string>
     <string name="installed">Installed</string>
     <string name="install">Install</string>
+    <string name="courses_install_pending">There are new received courses not installed yet.</string>
 
     <string name="download_starting">Download starting</string>
     <string name="downloading">Downloading &#8230;</string>
@@ -229,7 +229,8 @@
 
     <string name="error_connection">Error connecting to server. Please check you have an active internet connection and try again.</string>
     <string name="error_connection_required">You need an active internet connection to access this page. Please turn on wifi or mobile internet connection and try again.</string>
-    <string name="error_connection_ssl">Error connecting to server due to SSL problems. Please, ensure that the host in your &appName; server setting is correct, and that your device has the right time/date</string>
+    <string name="error_connection_ssl">Error connecting to server due to SSL problems. Please, ensure that the host in your &appName;
+        server setting is correct, and that your device has the right time/date</string>
     <string name="error_installing_course">%1$s: failed to install</string>
     <string name="error_latest_already_installed">%1$s: latest version already installed</string>
     <string name="error_login">Invalid username/password\nPlease try again</string>
@@ -328,7 +329,9 @@
 	<string name="empty_state_scorecard">You don\'t have any courses installed yet. \nOnce you install a course, you will see your progress here.</string>
 
     <string name="permissions.title">&appName; needs the following permissions to function properly:</string>
+
     <string name="permissions.storage.title">read and modify contents of the SD card</string>
+    <string name="permissions.simple.title">Permissions needed</string>
     <string name="permissions.storage.description">&appName; needs access to the SD card to be able to store the downloaded media contents for the courses</string>
     <string name="permissions.phone_state.title">read phone state and identity</string>
     <string name="permissions.phone_state.description">&appName; needs access to the phone identity to get information about your device model and Android version</string>
@@ -336,6 +339,7 @@
     <string name="permissions.not_askable.message">The app does not have the permissions needed to run. Please, go to Settings \> Apps \> &appName; > Permissions to grant access to these permissions</string>
 
     <string name="permissions.not_askable.info">You see this message because permissions were prompted before and you denied them and checked \"Don\'t ask again\"</string>
+    <string name="permissions.bluetooth.message">The app needs some additional permissions to scan for Bluetooth devices.</string>
     <string name="error_apikey_expired">Your API key expired. Please, log in again.</string>
 
     <string name="open_digest.errors.invalid_param">The \"digest\" parameter is either misconfigured or missing. Please, check that the link is valid.</string>
@@ -344,7 +348,47 @@
     <string name="open_digest.description">&appName; has the functionality to open activities based in its URL (opened from an SMS, for example)</string>
     <string name="open_digest.btn_action">Open activity</string>
     <string name="open_digest.activity_completed">Activity completed</string>
+    <string name="menu_sync">Synchronise</string>
+    <string name="title_sync">Synchronise</string>
+    <string name="export_activity.text">Export latest activity and quiz trackers to an external file</string>
+    <string name="tab_title_export">Export</string>
+    <string name="export_task_completed">Export completed</string>
+    <string name="export_task_completed_text">A file named \'%1$s\' has been placed on the device filesystem</string>
+    <string name="exported_activities.title">Activity exported trackers</string>
+    <string name="export_task_no_activities">There were no new activities or quizzes to export.</string>
+    <string name="submit_trackers_success">Trackers successfully submitted to server.</string>
+    <string name="tab_title_transfer">Transfer</string>
+    <string name="bt_not_enabled_leaving">Bluetooth was not enabled</string>
+    <string name="paired_devices">Paired devices</string>
+    <string name="other_devices">Other devices</string>
+    <string name="bluetooth.button_scan">Scan</string>
+    <string name="bluetooth.none_paired">No devices paired yet</string>
+    <string name="bluetooth.scanning">Scanning...</string>
+    <string name="bluetooth.no_devices_found">No devices found</string>
+    <string name="bluetooth.no_device_connected">No connected device</string>
+    <string name="bluetooth.select_device">Select device to connect</string>
+    <string name="bluetooth.title_connecting">Connecting to device...</string>
+    <string name="bluetooth.title_not_connected">Not connected</string>
+    <string name="bluetooth.title_connected_to">Connected</string>
+    <string name="course_transferring">Course transferring in progress...</string>
+    <string name="bluetooth.info_connect">Connect to other device using bluetooth to start transfer</string>
+    <string name="bluetooth.transferable_type">Transferable type</string>
+    <string name="bluetooth_device_scanning">Scanning for new devices...</string>
+    <string name="bluetooth_communication_closed">Bluetooth communication was closed.</string>
+    <string name="bluetooth.files_pending">%1$d files pending</string>
+    <string name="bluetooth_all_transfers_complete">All Bluetooth pending transfers were completed</string>
 
-
+    <!-- Strings for point events -->
+    <string name="points_event_activity_completed">Activity completed \'%1$s - %2$s\'</string>
+    <string name="points_event_media_played">Media played \'%1$s - %2$s\'</string>
+    <string name="points_event_quiz_attempt">Quiz attempt \'%1$s - %2$s\'</string>
+    <string name="points_event_course_downloaded">Course \'%1$s\' downloaded</string>
+    <string name="tab_title_leaderboard">Leaderboard</string>
+    <string name="leaderboard_position">Your position</string>
+    <string name="leaderboard_points">%1$s points</string>
+    <string name="prefShowGamificationEvents">Show gamification events</string>
+    <string name="prefDownloadEnabled">Enable course downloading from homepage</string>
+    <string name="prefChangeLanguageEnabled">Enable changing language from homepage</string>
+    <string name="transfer_receiving_course">Receiving course file...</string>
 </resources>
 

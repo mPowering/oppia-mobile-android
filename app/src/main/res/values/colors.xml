@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <color name="background_dark">#333333</color>
     <color name="background_light">#eeeeee</color>
     <color name="list_divider">#222222</color>
@@ -13,7 +13,11 @@
     <color name="highlight_label">#434343</color>
     <color name="highlight_separator">#b9b9b9</color>
     <color name="text_error">#DD2C00</color>
-    <color name="stroke">#DFDFDF</color>
-    <color name="quiz_navigation_bar">#D2D2D2</color>
+    <color name="stroke">#dfdfdf</color>
+    <color name="quiz_navigation_bar">#d2d2d2</color>
     <color name="quiz_navigation_button">#FF5A595B</color>
+
+    <color name="listitem_icon_tint">@color/highlight_light</color>
+    <color name="design_snackbar_background_color" tools:override="true">@color/highlight_light</color>
+    <color name="background_cover">#c6333333</color>
 </resources>

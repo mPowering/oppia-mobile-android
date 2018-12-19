@@ -24,6 +24,10 @@ public class Storage {
     public static final String APP_COURSES_DIR_NAME = "modules";
     public static final String APP_DOWNLOAD_DIR_NAME = "download";
     public static final String APP_MEDIA_DIR_NAME = "media";
+    public static final String APP_ACTIVITY_DIR_NAME = "activity";
+    public static final String APP_BACKUP_DIR_NAME = "backup";
+    public static final String APP_TMP_TRANSFER_DIR_NAME = "tmpbt";
+    public static final String APP_LEADERBOARD_DIR_NAME = "leaderboard";
 
     private static StorageAccessStrategy storageStrategy;
     public static void setStorageStrategy(StorageAccessStrategy strategy){
@@ -49,6 +53,22 @@ public class Storage {
         return getStorageLocationRoot(ctx) + File.separator + APP_MEDIA_DIR_NAME + File.separator;
     }
 
+    public static String getActivityPath(Context ctx){
+        return getStorageLocationRoot(ctx) + File.separator + APP_ACTIVITY_DIR_NAME + File.separator;
+    }
+
+    public static String getCourseBackupPath(Context ctx){
+        return getStorageLocationRoot(ctx) + File.separator + APP_BACKUP_DIR_NAME + File.separator;
+    }
+
+    public static String getBluetoothTransferTempPath(Context ctx){
+        return getStorageLocationRoot(ctx) + File.separator + APP_TMP_TRANSFER_DIR_NAME + File.separator;
+    }
+
+    public static String getLeaderboardImportPath(Context ctx){
+        return getStorageLocationRoot(ctx) + File.separator + APP_LEADERBOARD_DIR_NAME + File.separator;
+    }
+
     public static boolean createFolderStructure(Context ctx) {
 
         if (!storageStrategy.isStorageAvailable(ctx)){
@@ -58,7 +78,11 @@ public class Storage {
 
         //BUFFER_SIZE_CONFIG = 21;
 
-        String[] dirs = { Storage.getCoursesPath(ctx), Storage.getMediaPath(ctx), Storage.getDownloadPath(ctx) };
+        String[] dirs = {
+                Storage.getCoursesPath(ctx),
+                Storage.getMediaPath(ctx),
+                Storage.getDownloadPath(ctx),
+                Storage.getLeaderboardImportPath(ctx) };
 
         for (String dirName : dirs) {
             File dir = new File(dirName);
@@ -133,8 +157,10 @@ public class Storage {
             InputStream stream = act.getAssets().open(filePath);
             stream.close();
             return "file:///android_asset/" + filePath;
-        } catch (FileNotFoundException e) {
-        } catch (IOException e) {
+        } catch (FileNotFoundException fnfe) {
+            Log.d(TAG,"file not found for:"+ filePath, fnfe);
+        } catch (IOException ioe) {
+            Log.d(TAG,"Error reading file: "+ filePath, ioe);
         }
 
         String localeFilePath = "www" + File.separator + Locale.getDefault().getLanguage() + File.separator + fileName;
@@ -142,8 +168,10 @@ public class Storage {
             InputStream stream = act.getAssets().open(localeFilePath);
             stream.close();
             return "file:///android_asset/" + localeFilePath;
-        } catch (FileNotFoundException e) {
-        } catch (IOException e) {
+        } catch (FileNotFoundException fnfe) {
+            Log.d(TAG,"file not found for:"+ localeFilePath, fnfe);
+        } catch (IOException ioe) {
+            Log.d(TAG,"Error reading file: "+ localeFilePath, ioe);
         }
 
         String defaultFilePath = "www" + File.separator + MobileLearning.DEFAULT_LANG + File.separator + fileName;
@@ -151,8 +179,10 @@ public class Storage {
             InputStream stream = act.getAssets().open(defaultFilePath);
             stream.close();
             return "file:///android_asset/" + defaultFilePath;
-        } catch (FileNotFoundException e) {
-        } catch (IOException e) {
+        } catch (FileNotFoundException fnfe) {
+            Log.d(TAG,"file not found for:"+ defaultFilePath, fnfe);
+        } catch (IOException ioe) {
+            Log.d(TAG,"Error reading file: "+ defaultFilePath, ioe);
         }
         return "";
 

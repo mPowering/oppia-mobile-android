@@ -23,15 +23,12 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.adapter.ActivityPagerAdapter;
 import org.digitalcampus.oppia.fragments.AboutFragment;
 import org.digitalcampus.oppia.fragments.OppiaWebViewFragment;
-import org.digitalcampus.oppia.fragments.StatsFragment;
 import org.digitalcampus.oppia.utils.storage.Storage;
 
 import java.util.ArrayList;
@@ -46,7 +43,6 @@ public class AboutActivity extends AppActivity {
 	public static final int TAB_ABOUT = 0;
 	public static final int TAB_HELP = 1;
 	public static final int TAB_PRIVACY = 2;
-	public static final int TAB_STATS = 3;
 
 	private ViewPager viewPager;
     private TabLayout tabs;
@@ -74,7 +70,7 @@ public class AboutActivity extends AppActivity {
 		super.onStart();
 
 		String lang = prefs.getString(PrefsActivity.PREF_LANGUAGE, Locale.getDefault().getLanguage());
-		List<Fragment> fragments = new ArrayList<Fragment>();
+		List<Fragment> fragments = new ArrayList<>();
         List<String> titles = new ArrayList<>();
 		
 		Fragment fAbout = AboutFragment.newInstance();
@@ -90,10 +86,6 @@ public class AboutActivity extends AppActivity {
 		Fragment fPrivacy = OppiaWebViewFragment.newInstance(TAB_PRIVACY, url);
 		fragments.add(fPrivacy);
         titles.add(this.getString(R.string.tab_title_privacy));
-		
-		Fragment fStats = StatsFragment.newInstance();
-		fragments.add(fStats);
-        titles.add(this.getString(R.string.tab_title_activity));
 
 		ActivityPagerAdapter adapter = new ActivityPagerAdapter(this, getSupportFragmentManager(), fragments, titles);
 		viewPager.setAdapter(adapter);
@@ -105,12 +97,12 @@ public class AboutActivity extends AppActivity {
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle item selection
 		switch (item.getItemId()) {
 			case android.R.id.home:
 				this.finish();
 				return true;
+			default:
+				return false;
 		}
-		return true;
 	}
 }

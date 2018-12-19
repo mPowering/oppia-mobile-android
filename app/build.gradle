@@ -1,11 +1,15 @@
+
+plugins {
+    id "org.sonarqube" version "2.6.1"
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'jacoco'
 apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: "org.sonarqube"
 
 repositories {
-    maven {
-        url "https://mint.splunk.com/gradle/"
-    }
+    maven { url "https://mint.splunk.com/gradle/" }
 }
 
 android {
@@ -14,8 +18,8 @@ android {
 
     defaultConfig {
         applicationId "org.opendeliver.oppia"
-        versionCode 64
-        versionName "6.4.0"
+        versionCode 65
+        versionName "6.5.0"
         minSdkVersion 14
         targetSdkVersion 25
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -44,41 +48,53 @@ android {
     runtimeProps.load(new FileInputStream(rootProject.file('oppia-default.properties')))
 
     def oppiaPropsFile = rootProject.file('custom.properties')
-    if (oppiaPropsFile.canRead()){
+    if (oppiaPropsFile.canRead()) {
         logger.info('Fetching properties from external file')
         runtimeProps.load(new FileInputStream(oppiaPropsFile))
-    }
-    else{
+    } else {
         logger.error('No properties file found. Using default values.')
     }
 
     buildTypes {
 
-        all{
+        all {
             //Define all the constant values that depend on the config properties
-            buildConfigField "String", "MINT_API_KEY", "\"" + runtimeProps['MINT_API_KEY'] +"\""
+            buildConfigField "String", "MINT_API_KEY", "\"" + runtimeProps['MINT_API_KEY'] + "\""
             buildConfigField "boolean", "ADMIN_PROTECT_SETTINGS", runtimeProps['ADMIN_PROTECT_SETTINGS']
+            buildConfigField "boolean", "ADMIN_PROTECT_ACTIVITY_SYNC", runtimeProps['ADMIN_PROTECT_ACTIVITY_SYNC']
+            buildConfigField "boolean", "ADMIN_PROTECT_ACTIVITY_EXPORT", runtimeProps['ADMIN_PROTECT_ACTIVITY_EXPORT']
             buildConfigField "boolean", "ADMIN_PROTECT_COURSE_DELETE", runtimeProps['ADMIN_PROTECT_COURSE_DELETE']
             buildConfigField "boolean", "ADMIN_PROTECT_COURSE_RESET", runtimeProps['ADMIN_PROTECT_COURSE_RESET']
             buildConfigField "boolean", "ADMIN_PROTECT_COURSE_INSTALL", runtimeProps['ADMIN_PROTECT_COURSE_INSTALL']
             buildConfigField "boolean", "ADMIN_PROTECT_COURSE_UPDATE", runtimeProps['ADMIN_PROTECT_COURSE_UPDATE']
+
             buildConfigField "boolean", "MENU_ALLOW_LOGOUT", runtimeProps['MENU_ALLOW_LOGOUT']
             buildConfigField "boolean", "MENU_ALLOW_MONITOR", runtimeProps['MENU_ALLOW_MONITOR']
             buildConfigField "boolean", "MENU_ALLOW_SETTINGS", runtimeProps['MENU_ALLOW_SETTINGS']
+            buildConfigField "boolean", "MENU_ALLOW_LANGUAGE", runtimeProps['MENU_ALLOW_LANGUAGE']
+            buildConfigField "boolean", "MENU_ALLOW_SYNC", runtimeProps['MENU_ALLOW_SYNC']
             buildConfigField "boolean", "MENU_ALLOW_COURSE_DOWNLOAD", runtimeProps['MENU_ALLOW_COURSE_DOWNLOAD']
             buildConfigField "boolean", "DEVICEADMIN_ENABLED", runtimeProps['DEVICEADMIN_ENABLED']
             buildConfigField "boolean", "SESSION_EXPIRATION_ENABLED", runtimeProps['SESSION_EXPIRATION_ENABLED']
             buildConfigField "int", "SESSION_EXPIRATION_TIMEOUT", runtimeProps['SESSION_EXPIRATION_TIMEOUT']
             buildConfigField "int", "DOWNLOAD_COURSES_DISPLAY", runtimeProps['DOWNLOAD_COURSES_DISPLAY']
+            buildConfigField "String", "GAMIFICATION_MEDIA_CRITERIA", "\"" + runtimeProps['GAMIFICATION_MEDIA_CRITERIA'] + "\""
+            buildConfigField "int", "GAMIFICATION_DEFAULT_MEDIA_THRESHOLD", runtimeProps['GAMIFICATION_DEFAULT_MEDIA_THRESHOLD']
 
             resValue "string", "MENU_ALLOW_LOGOUT_DEFAULT_VALUE", runtimeProps['MENU_ALLOW_LOGOUT']
+            resValue "string", "MENU_ALLOW_COURSE_DOWNLOAD_DEFAULT_VALUE", runtimeProps['MENU_ALLOW_COURSE_DOWNLOAD']
+            resValue "string", "MENU_ALLOW_LANGUAGE_DEFAULT_VALUE", runtimeProps['MENU_ALLOW_LANGUAGE']
             resValue "string", "prefServerDefault", runtimeProps['OPPIA_SERVER_DEFAULT']
             resValue "string", "oppiaServerHost", runtimeProps['OPPIA_SERVER_HOST']
+            resValue "string", "prefAdminPasswordDefault", runtimeProps['ADMIN_PROTECT_INITIAL_PASSWORD']
+
         }
 
-        debug{
+        debug {
             testCoverageEnabled = true
+            debuggable = true
         }
+
 
         release {
             minifyEnabled false
@@ -92,9 +108,9 @@ android {
     }
 
     productFlavors {
-        normal { }
+        normal {}
 
-        admin { }
+        admin {}
     }
 
 
@@ -115,6 +131,7 @@ dependencies {
     compile 'uk.co.chrisjenx:calligraphy:2.3.0'
 
     //JUnit Dependencies
+    compile 'com.android.support.constraint:constraint-layout:1.1.0'
     testCompile 'junit:junit:4.12'
     androidTestCompile 'com.squareup.okhttp3:mockwebserver:3.3.1'
     androidTestCompile 'com.android.support.test:runner:0.5'
@@ -123,7 +140,7 @@ dependencies {
 
     //Espresso Dependencies
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
-    androidTestCompile ('com.android.support.test.espresso:espresso-contrib:2.2.2'){
+    androidTestCompile('com.android.support.test.espresso:espresso-contrib:2.2.2') {
         exclude module: 'support-annotations'
         exclude module: 'support-v4'
         exclude module: 'support-v13'
@@ -147,14 +164,14 @@ dependencies {
 
 apply plugin: 'com.google.gms.google-services'
 
-task grantPermissions (type: Exec, dependsOn: 'installDebug'){
+task grantPermissions(type: Exec, dependsOn: 'installDebug') {
     group = 'test'
     description = 'Grant permissions for testing.'
 
     def adb = android.getAdbExe().toString()
     if (!System.getProperty('os.name').toLowerCase().contains('windows')) {
         println "Granting permissions for a non windows os"
-    }else{
+    } else {
         println "Granting permissions for a windows os"
     }
     commandLine "${adb} shell pm grant org.digitalcampus.mobile.learning android.permission.SET_ANIMATION_SCALE --stacktrace".split(" ")
@@ -164,9 +181,9 @@ task grantPermissions (type: Exec, dependsOn: 'installDebug'){
 afterEvaluate {
     tasks.each { task ->
         if (task.name.contentEquals('connectedAndroidTest') ||
-            task.name.contentEquals('connectedDebugAndroidTest') ||
-            task.name.contentEquals('assembleDebugAndroidTest') ||
-            task.name.contentEquals('assembleAndroidTest')) {
+                task.name.contentEquals('connectedDebugAndroidTest') ||
+                task.name.contentEquals('assembleDebugAndroidTest') ||
+                task.name.contentEquals('assembleAndroidTest')) {
             task.dependsOn grantPermissions
         }
     }

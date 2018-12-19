@@ -30,8 +30,6 @@ import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.adapter.DownloadMediaListAdapter;
 import org.digitalcampus.oppia.listener.DownloadMediaListener;
 import org.digitalcampus.oppia.listener.ListInnerBtnOnClickListener;
-import org.digitalcampus.oppia.model.Course;
-import org.digitalcampus.oppia.model.CourseMetaPage;
 import org.digitalcampus.oppia.model.Media;
 import org.digitalcampus.oppia.service.DownloadBroadcastReceiver;
 import org.digitalcampus.oppia.service.DownloadService;
@@ -41,34 +39,28 @@ import org.digitalcampus.oppia.utils.storage.ExternalStorageStrategy;
 import org.digitalcampus.oppia.utils.storage.FileUtils;
 import org.digitalcampus.oppia.utils.storage.Storage;
 
-import com.androidplot.pie.PieRenderer;
 import com.splunk.mint.Mint;
 
 import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.animation.TranslateAnimation;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 public class DownloadMediaActivity extends AppActivity implements DownloadMediaListener {
 
@@ -87,7 +79,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
     private ListView mediaList;
     private ArrayList<Media> mediaSelected;
 
-    public enum DownloadMode {INDIVIDUALLY, DOWNLOAD_ALL, STOP_ALL};
+    public enum DownloadMode { INDIVIDUALLY, DOWNLOAD_ALL, STOP_ALL }
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -204,7 +196,8 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
                             }
                         }
                         return true;
-                    default: return true;
+                    default:
+                        return false;
                 }
             }
 
@@ -229,9 +222,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
             }
         });
 
-		Editor e = prefs.edit();
-		e.putLong(PrefsActivity.PREF_LAST_MEDIA_SCAN, 0);
-		e.commit();
+		Media.resetMediaScan(prefs);
 
         emptyState = (TextView) findViewById(R.id.empty_state);
 	}
@@ -239,7 +230,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
 	@Override
 	public void onResume(){
 		super.onResume();
-        if ((missingMedia != null) && missingMedia.size()>0) {
+        if ((missingMedia != null) && !missingMedia.isEmpty()) {
             //We already have loaded media (coming from orientationchange)
             dmla.sortByFilename();
             isSortByCourse = false;
@@ -286,12 +277,12 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
         getMenuInflater().inflate(R.menu.missing_media_sortby, menu);
         MenuItem selectAll = menu.findItem(R.id.menu_select_all);
         if(selectAll != null) {
-            selectAll.setVisible(missingMedia.size() != 0);
+            selectAll.setVisible(!missingMedia.isEmpty());
         }
 
         MenuItem sortBy = menu.findItem(R.id.menu_sort_by);
         if(sortBy != null){
-            sortBy.setVisible(missingMedia.size() != 0);
+            sortBy.setVisible(!missingMedia.isEmpty());
             sortBy.setTitle(isSortByCourse ? getString(R.string.menu_sort_by_filename)
                     : getString(R.string.menu_sort_by_course));
         }
@@ -332,6 +323,8 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
             UIUtils.showAlert(this, R.string.prefStorageLocation, this.getString(R.string.download_via_pc_extenal_storage));
             return;
         }
+        FileOutputStream f = null;
+        Writer out = null;
         try {
             String filename = "oppia-media.html";
             String path = ExternalStorageStrategy.getInternalBasePath(this);
@@ -353,22 +346,37 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
             html = html.replace("##download_files##", downloadData);
 
 		    File file = new File(Environment.getExternalStorageDirectory(),filename);
-			FileOutputStream f = new FileOutputStream(file);
-			Writer out = new OutputStreamWriter(new FileOutputStream(file));
+			f = new FileOutputStream(file);
+			out = new OutputStreamWriter(new FileOutputStream(file));
 			out.write(html);
 			out.close();
 			f.close();
 			UIUtils.showAlert(this, R.string.info, this.getString(R.string.download_via_pc_message,filename));
-		} catch (FileNotFoundException e) {
-			Mint.logException(e);
-			e.printStackTrace();
-		} catch (IOException e) {
-			Mint.logException(e);
-			e.printStackTrace();
-		}
+		} catch (FileNotFoundException fnfe) {
+			Mint.logException(fnfe);
+            Log.d(TAG, "File not found", fnfe);
+		} catch (IOException ioe) {
+			Mint.logException(ioe);
+            Log.d(TAG, "IOException", ioe);
+		} finally {
+            if(out != null){
+                try {
+                    out.close();
+                } catch (IOException ioe) {
+                    Log.d(TAG, "couldn't close OutputStreamWriter object", ioe);
+                }
+            }
+            if(f != null){
+                try {
+                    f.close();
+                } catch (IOException ioe) {
+                    Log.d(TAG, "couldn't close FileOutputStream object", ioe);
+                }
+            }
+        }
 	}
 
-    // Override
+    @Override
     public void onDownloadProgress(String fileUrl, int progress) {
         Media mediaFile = findMedia(fileUrl);
         if (mediaFile != null){
@@ -377,7 +385,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
         }
     }
 
-    // Override
+    @Override
     public void onDownloadFailed(String fileUrl, String message) {
         Media mediaFile = findMedia(fileUrl);
         if (mediaFile != null){
@@ -389,7 +397,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
         }
     }
 
-    // Override
+    @Override
     public void onDownloadComplete(String fileUrl) {
         Media mediaFile = findMedia(fileUrl);
         if (mediaFile != null){
@@ -397,14 +405,14 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
 
             missingMedia.remove(mediaFile);
             dmla.notifyDataSetChanged();
-            emptyState.setVisibility((missingMedia.size()==0) ? View.VISIBLE : View.GONE);
-            downloadViaPCBtn.setVisibility((missingMedia.size()==0) ? View.GONE : View.VISIBLE);
+            emptyState.setVisibility((missingMedia.isEmpty()) ? View.VISIBLE : View.GONE);
+            downloadViaPCBtn.setVisibility((missingMedia.isEmpty()) ? View.GONE : View.VISIBLE);
             invalidateOptionsMenu();
         }
     }
 
     private Media findMedia(String fileUrl){
-        if ( missingMedia.size()>0){
+        if (!missingMedia.isEmpty()){
             for (Media mediaFile : missingMedia){
                 if (mediaFile.getDownloadUrl().equals(fileUrl)){
                     return mediaFile;
@@ -517,19 +525,12 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
 
     private class DownloadMediaListener implements ListInnerBtnOnClickListener {
     	
-    	public final String TAG = DownloadMediaListener.class.getSimpleName();
-    	
         //@Override
         public void onClick(int position) {
-
-            Log.d(TAG, "Clicked " + position);
+            Log.d(DownloadMediaListener.class.getSimpleName(), "Clicked " + position);
             Media mediaToDownload = missingMedia.get(position);
 
         	downloadMedia(mediaToDownload, DownloadMode.INDIVIDUALLY);
-
         }
-
-
     }
-
 }

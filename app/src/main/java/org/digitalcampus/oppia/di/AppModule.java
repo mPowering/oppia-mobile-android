@@ -14,9 +14,10 @@ import org.digitalcampus.oppia.model.CoursesRepository;
 import org.digitalcampus.oppia.model.Points;
 import org.digitalcampus.oppia.model.TagRepository;
 import org.digitalcampus.oppia.model.User;
-import org.digitalcampus.oppia.service.CourseInstallerServiceDelegate;
+import org.digitalcampus.oppia.service.courseinstall.CourseInstallerServiceDelegate;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Singleton;
 
@@ -62,7 +63,7 @@ public class AppModule {
     }
 
     @Provides
-    public ArrayList<Points> providePointsList(){
+    public List<Points> providePointsList(){
         return new ArrayList<>();
     }
 

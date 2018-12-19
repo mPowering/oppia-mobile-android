@@ -37,10 +37,10 @@ import android.widget.TextView;
 import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.activity.AboutActivity;
 import org.digitalcampus.oppia.activity.AppActivity;
-import org.digitalcampus.oppia.activity.MonitorActivity;
 import org.digitalcampus.oppia.activity.PrefsActivity;
 import org.digitalcampus.oppia.activity.ScorecardActivity;
 import org.digitalcampus.oppia.activity.SearchActivity;
+import org.digitalcampus.oppia.activity.SyncActivity;
 import org.digitalcampus.oppia.activity.TagSelectActivity;
 import org.digitalcampus.oppia.application.AdminSecurityManager;
 import org.digitalcampus.oppia.application.MobileLearning;
@@ -110,9 +110,9 @@ public class DrawerMenuManager {
         Menu drawerMenu = navigationView.getMenu();
         MenuItem itemLogout = drawerMenu.findItem(R.id.menu_logout);
         MenuItem itemSettings = drawerMenu.findItem(R.id.menu_settings);
-        MenuItem itemMonitor = drawerMenu.findItem(R.id.menu_monitor);
         MenuItem itemCourseDownload = drawerMenu.findItem(R.id.menu_download);
         MenuItem itemLanguageDialog = drawerMenu.findItem(R.id.menu_language);
+        MenuItem itemSync = drawerMenu.findItem(R.id.menu_sync);
 
         if (currentOption != null){
             MenuItem current = drawerMenu.findItem(currentOption);
@@ -125,9 +125,9 @@ public class DrawerMenuManager {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(drawerAct);
         itemLogout.setVisible(prefs.getBoolean(PrefsActivity.PREF_LOGOUT_ENABLED, MobileLearning.MENU_ALLOW_LOGOUT));
         itemSettings.setVisible(MobileLearning.MENU_ALLOW_SETTINGS);
-        itemMonitor.setVisible(MobileLearning.MENU_ALLOW_MONITOR);
-        itemCourseDownload.setVisible(MobileLearning.MENU_ALLOW_COURSE_DOWNLOAD);
-        itemLanguageDialog.setVisible(customOptions.containsKey(R.id.menu_language));
+        itemCourseDownload.setVisible(prefs.getBoolean(PrefsActivity.PREF_DOWNLOAD_ENABLED, MobileLearning.MENU_ALLOW_COURSE_DOWNLOAD));
+        itemLanguageDialog.setVisible(customOptions.containsKey(R.id.menu_language) && prefs.getBoolean(PrefsActivity.PREF_CHANGE_LANGUAGE_ENABLED, MobileLearning.MENU_ALLOW_LANGUAGE));
+        itemSync.setVisible(MobileLearning.MENU_ALLOW_SYNC);
     }
 
     public void onPostCreate(Bundle savedInstanceState){
@@ -155,14 +155,14 @@ public class DrawerMenuManager {
                     launchIntentForActivity(TagSelectActivity.class);
                 } else if (itemId == R.id.menu_about) {
                     launchIntentForActivity(AboutActivity.class);
-                } else if (itemId == R.id.menu_monitor) {
-                    launchIntentForActivity(MonitorActivity.class);
                 } else if (itemId == R.id.menu_scorecard) {
                     launchIntentForActivity(ScorecardActivity.class);
                 } else if (itemId == R.id.menu_search) {
                     launchIntentForActivity(SearchActivity.class);
                 } else if (itemId == R.id.menu_settings) {
                     launchIntentForActivity(PrefsActivity.class);
+                } else if (itemId == R.id.menu_sync) {
+                    launchIntentForActivity(SyncActivity.class);
                 }else if (itemId == R.id.menu_logout) {
                     logout();
                 }

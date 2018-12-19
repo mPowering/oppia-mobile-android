@@ -28,17 +28,9 @@ public class OppiaNotificationUtils {
 
         //Notification styles changed since Lollipop
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            int color;
-            //We have to check the M version for the deprecation of the method getColor()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                color = ctx.getResources().getColor(R.color.highlight_light);
-            }
-            else{
-                color = ctx.getResources().getColor(R.color.highlight_light);
-            }
+            int color = ctx.getResources().getColor(R.color.highlight_light);
             notifBuilder.setColor(color);
-        }
-        else{
+        } else {
             //in older versions, we show the App logo
             notifBuilder.setLargeIcon(BitmapFactory.decodeResource(ctx.getResources(), MobileLearning.APP_LOGO));
         }
@@ -53,5 +45,11 @@ public class OppiaNotificationUtils {
             NotificationManager notificationManager = (NotificationManager) ctx.getSystemService(NOTIFICATION_SERVICE);
             notificationManager.notify(id, notification);
         }
+    }
+
+    public static void sendSimpleMessage(Context ctx, boolean setAutoCancel, int id, String message){
+        NotificationCompat.Builder mBuilder  = OppiaNotificationUtils.getBaseBuilder(ctx, setAutoCancel);
+        mBuilder.setContentTitle(ctx.getString(R.string.app_name)).setContentText(message).build();
+        OppiaNotificationUtils.sendNotification(ctx, 0, mBuilder.build());
     }
 }

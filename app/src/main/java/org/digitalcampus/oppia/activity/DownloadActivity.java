@@ -23,7 +23,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -35,26 +34,26 @@ import com.splunk.mint.Mint;
 import org.opendeliver.oppia.R;
 import org.digitalcampus.oppia.adapter.CourseIntallViewAdapter;
 import org.digitalcampus.oppia.adapter.DownloadCourseListAdapter;
-import org.digitalcampus.oppia.application.DbHelper;
 import org.digitalcampus.oppia.application.MobileLearning;
+import org.digitalcampus.oppia.application.Tracker;
+import org.digitalcampus.oppia.gamification.GamificationEngine;
 import org.digitalcampus.oppia.listener.APIRequestListener;
 import org.digitalcampus.oppia.listener.CourseInstallerListener;
 import org.digitalcampus.oppia.listener.ListInnerBtnOnClickListener;
 import org.digitalcampus.oppia.model.CourseInstallRepository;
-import org.digitalcampus.oppia.model.Lang;
+import org.digitalcampus.oppia.model.GamificationEvent;
 import org.digitalcampus.oppia.model.Tag;
-import org.digitalcampus.oppia.service.CourseInstallerServiceDelegate;
-import org.digitalcampus.oppia.service.CourseIntallerService;
-import org.digitalcampus.oppia.service.InstallerBroadcastReceiver;
-import org.digitalcampus.oppia.task.APIUserRequestTask;
+import org.digitalcampus.oppia.service.courseinstall.CourseInstallerServiceDelegate;
+import org.digitalcampus.oppia.service.courseinstall.CourseIntallerService;
+import org.digitalcampus.oppia.service.courseinstall.InstallerBroadcastReceiver;
 import org.digitalcampus.oppia.task.Payload;
+import org.digitalcampus.oppia.utils.MetaDataUtils;
 import org.digitalcampus.oppia.utils.UIUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
@@ -124,7 +123,7 @@ public class DownloadActivity extends AppActivity implements APIRequestListener,
 		if(json == null){
             // The JSON download task has not started or been completed yet
 			getCourseList();
-		} else if ((courses != null) && courses.size()>0) {
+		} else if ((courses != null) && !courses.isEmpty()) {
             // We already have loaded JSON and courses (coming from orientationchange)
             dla.notifyDataSetChanged();
         }
@@ -200,7 +199,7 @@ public class DownloadActivity extends AppActivity implements APIRequestListener,
             courseInstallRepository.refreshCourseList(this, courses, json, storage, showUpdatesOnly);
 
             dla.notifyDataSetChanged();
-            findViewById(R.id.empty_state).setVisibility((courses.size()==0) ? View.VISIBLE : View.GONE);
+            findViewById(R.id.empty_state).setVisibility((courses.isEmpty()) ? View.VISIBLE : View.GONE);
 
 		} catch (Exception e) {
 			Mint.logException(e);
@@ -225,6 +224,7 @@ public class DownloadActivity extends AppActivity implements APIRequestListener,
 			try {
 				json = new JSONObject(response.getResultResponse());
 				refreshCourseList();
+
 			} catch (JSONException e) {
 				Mint.logException(e);
 				e.printStackTrace();
@@ -280,7 +280,7 @@ public class DownloadActivity extends AppActivity implements APIRequestListener,
     }
 
     private CourseIntallViewAdapter findCourse(String fileUrl){
-        if ( courses.size()>0){
+        if (!courses.isEmpty()){
             for (CourseIntallViewAdapter course : courses){
                 if (course.getDownloadUrl().equals(fileUrl)){
                     return course;

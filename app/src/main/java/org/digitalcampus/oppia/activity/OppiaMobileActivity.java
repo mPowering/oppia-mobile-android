@@ -26,9 +26,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -57,8 +55,9 @@ import org.digitalcampus.oppia.model.Course;
 import org.digitalcampus.oppia.model.CoursesRepository;
 import org.digitalcampus.oppia.model.DownloadProgress;
 import org.digitalcampus.oppia.model.Lang;
-import org.digitalcampus.oppia.service.CourseIntallerService;
-import org.digitalcampus.oppia.service.InstallerBroadcastReceiver;
+import org.digitalcampus.oppia.model.Media;
+import org.digitalcampus.oppia.service.courseinstall.CourseIntallerService;
+import org.digitalcampus.oppia.service.courseinstall.InstallerBroadcastReceiver;
 import org.digitalcampus.oppia.task.DeleteCourseTask;
 import org.digitalcampus.oppia.task.Payload;
 import org.digitalcampus.oppia.task.ScanMediaTask;
@@ -69,6 +68,7 @@ import org.digitalcampus.oppia.utils.ui.DrawerMenuManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -88,7 +88,6 @@ public class OppiaMobileActivity
 	public static final String TAG = OppiaMobileActivity.class.getSimpleName();
 	private ArrayList<Course> courses;
 	private Course tempCourse;
-	private long userId = 0;
     private int initialCourseListPadding = 0;
 
     private TextView messageText;
@@ -113,7 +112,7 @@ public class OppiaMobileActivity
 
         initializeDagger();
 
-        PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
+
         prefs.registerOnSharedPreferenceChangeListener(this);
 
 		// set preferred lang to the default lang
@@ -130,7 +129,6 @@ public class OppiaMobileActivity
         courseList = (ListView) findViewById(R.id.course_list);
         courseList.setAdapter(courseListAdapter);
 
-        //the alternative of registerForContextMenu(courseList);
         CourseContextMenuCustom courseMenu = new CourseContextMenuCustom(this);
         courseMenu.registerForContextMenu(courseList, this);
 
@@ -161,10 +159,7 @@ public class OppiaMobileActivity
 		super.onStart();
         drawer = new DrawerMenuManager(this, true);
         drawer.initializeDrawer();
-
-		DbHelper db = DbHelper.getInstance(this);
-		userId = db.getUserId(SessionManager.getUsername(this));
-		displayCourses(userId);
+		displayCourses();
 	}
 
 	@Override
@@ -185,9 +180,7 @@ public class OppiaMobileActivity
         unregisterReceiver(receiver);
 	}
 	
-	private void displayCourses(long userId) {
-
-		DbHelper db = DbHelper.getInstance(this);
+	private void displayCourses() {
         courses.clear();
 		courses.addAll(coursesRepository.getCourses(this));
 		
@@ -211,8 +204,8 @@ public class OppiaMobileActivity
 		if(prefs.getBoolean(PrefsActivity.PREF_SHOW_SCHEDULE_REMINDERS, false)){
 			DbHelper db = DbHelper.getInstance(OppiaMobileActivity.this);
 			int max = Integer.valueOf(prefs.getString(PrefsActivity.PREF_NO_SCHEDULE_REMINDERS, "2"));
-			long userId = db.getUserId(SessionManager.getUsername(this));
-			ArrayList<Activity> activities = db.getActivitiesDue(max, userId);
+			long sessionUserId = db.getUserId(SessionManager.getUsername(this));
+			List<Activity> activities = db.getActivitiesDue(max, sessionUserId);
 
 			this.drawReminders(activities);
 		} else {
@@ -256,7 +249,7 @@ public class OppiaMobileActivity
         noCoursesView.setVisibility(View.VISIBLE);
 
         TextView tv = (TextView) this.findViewById(R.id.manage_courses_text);
-        tv.setText((courses.size() > 0)? R.string.more_courses : R.string.no_courses);
+        tv.setText((!courses.isEmpty())? R.string.more_courses : R.string.no_courses);
 
         Button manageBtn = (Button) this.findViewById(R.id.manage_courses_btn);
         manageBtn.setOnClickListener(new View.OnClickListener() {
@@ -274,7 +267,7 @@ public class OppiaMobileActivity
 		for(Course m: courses){ langs.addAll(m.getMultiLangInfo().getLangs()); }
 
         UIUtils.createLanguageDialog(this, langs, prefs, new Callable<Boolean>() {
-            public Boolean call() throws Exception {
+            public Boolean call(){
                 OppiaMobileActivity.this.onStart();
                 return true;
             }
@@ -338,8 +331,8 @@ public class OppiaMobileActivity
 		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 DbHelper db = DbHelper.getInstance(OppiaMobileActivity.this);
-                db.resetCourse(tempCourse.getCourseId(), OppiaMobileActivity.this.userId);
-                displayCourses(userId);
+                db.resetCourse(tempCourse.getCourseId(), SessionManager.getUserId(OppiaMobileActivity.this));
+                displayCourses();
             }
         });
 		builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
@@ -351,7 +344,7 @@ public class OppiaMobileActivity
 	}
 	
 	private void confirmCourseUpdateActivity(){
-        UpdateCourseActivityTask task = new UpdateCourseActivityTask(OppiaMobileActivity.this, this.userId);
+        UpdateCourseActivityTask task = new UpdateCourseActivityTask(OppiaMobileActivity.this, SessionManager.getUserId(this));
         ArrayList<Object> payloadData = new ArrayList<>();
         payloadData.add(tempCourse);
         Payload p = new Payload(payloadData);
@@ -368,7 +361,7 @@ public class OppiaMobileActivity
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
 		if(key.equalsIgnoreCase(PrefsActivity.PREF_SHOW_SCHEDULE_REMINDERS) || key.equalsIgnoreCase(PrefsActivity.PREF_NO_SCHEDULE_REMINDERS)){
-			displayCourses(userId);
+			displayCourses();
 		}
 
 		if(key.equalsIgnoreCase(PrefsActivity.PREF_DOWNLOAD_VIA_CELLULAR_ENABLED)){
@@ -386,21 +379,18 @@ public class OppiaMobileActivity
     ///Everything related to the ScanMediaTask, including UI management
 
     private void scanMedia() {
-        long now = System.currentTimeMillis()/1000;
-        long lastScan = prefs.getLong(PrefsActivity.PREF_LAST_MEDIA_SCAN, 0);
-        if (lastScan + MobileLearning.MEDIA_SCAN_TIME_LIMIT > now) {
-            hideScanMediaMessage();
-            return;
+
+	    if (Media.shouldScanMedia(prefs)){
+            ScanMediaTask task = new ScanMediaTask(this);
+            Payload p = new Payload(this.courses);
+            task.setScanMediaListener(this);
+            task.execute(p);
         }
-        ScanMediaTask task = new ScanMediaTask(this);
-        Payload p = new Payload(this.courses);
-        task.setScanMediaListener(this);
-        task.execute(p);
+        else{
+            hideScanMediaMessage();
+        }
     }
 
-    private void updateLastScan(long scanTime){
-        prefs.edit().putLong(PrefsActivity.PREF_LAST_MEDIA_SCAN, scanTime).apply();
-    }
 
     private void animateScanMediaMessage(){
         TranslateAnimation anim = new TranslateAnimation(0, 0, -200, 0);
@@ -436,7 +426,7 @@ public class OppiaMobileActivity
 	}
 
 	public void scanComplete(Payload response) {
-		if (response.getResponseData().size() > 0) {
+		if (!response.getResponseData().isEmpty()) {
             if (messageContainer.getVisibility() != View.VISIBLE){
                 messageContainer.setVisibility(View.VISIBLE);
                 messageButton.setOnClickListener(new OnClickListener() {
@@ -457,13 +447,12 @@ public class OppiaMobileActivity
             messageText.setText(this.getString(R.string.info_scan_media_missing));
             messageButton.setText(this.getString(R.string.scan_media_download_button));
             messageButton.setTag(response.getResponseData());
-            updateLastScan(0);
+            Media.resetMediaScan(prefs);
 		} else {
             hideScanMediaMessage();
             messageButton.setOnClickListener(null);
             messageButton.setTag(null);
-			long now = System.currentTimeMillis()/1000;
-			updateLastScan(now);
+			Media.updateMediaScan(prefs);
 		}
 	}
     //endregion
@@ -471,7 +460,7 @@ public class OppiaMobileActivity
     //@Override
     public void onCourseDeletionComplete(Payload response) {
         if (response.isResult()){
-            updateLastScan(0);
+            Media.resetMediaScan(prefs);
         }
         if (progressDialog != null){
             progressDialog.dismiss();
@@ -479,20 +468,32 @@ public class OppiaMobileActivity
         Toast.makeText(OppiaMobileActivity.this,
                 getString(response.isResult()? R.string.course_deleting_success : R.string.course_deleting_error),
                 Toast.LENGTH_LONG).show();
-        displayCourses(userId);
+        displayCourses();
     }
 
     /* CourseInstallerListener implementation */
     public void onInstallComplete(String fileUrl) {
         Toast.makeText(this, this.getString(R.string.install_complete), Toast.LENGTH_LONG).show();
-        displayCourses(userId);
+        displayCourses();
     }
-    public void onDownloadProgress(String fileUrl, int progress) {}
-    public void onInstallProgress(String fileUrl, int progress) {}
-    public void onInstallFailed(String fileUrl, String message) {}
+
+    public void onDownloadProgress(String fileUrl, int progress) {
+        // no need to show download progress in this activity
+    }
+
+    public void onInstallProgress(String fileUrl, int progress) {
+        // no need to show install progress in this activity
+    }
+
+    public void onInstallFailed(String fileUrl, String message) {
+        // no need to show install failed in this activity
+    }
 
     /* UpdateActivityListener implementation */
-    public void updateActivityProgressUpdate(DownloadProgress dp) { }
+    public void updateActivityProgressUpdate(DownloadProgress dp) {
+        // no need to show download progress in this activity
+    }
+
 	public void updateActivityComplete(Payload response) {
         Course course = (Course) response.getData().get(0);
         if (progressDialog != null){
@@ -503,7 +504,7 @@ public class OppiaMobileActivity
                     response.isResult() ? R.string.course_updating_success : R.string.course_updating_error,
                     (course!=null) ? course.getShortname() : ""),
                 Toast.LENGTH_LONG).show();
-        displayCourses(userId);
+        displayCourses();
 	}
 
 
